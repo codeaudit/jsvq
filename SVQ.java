@@ -5,18 +5,14 @@
 // Convert to bmp with `for f in $(ls *.tiff); do convert $f $f.bmp; done`
 // package image_test;
 
+import java.io.File;
+
 public class SVQ {
     public static void main(String[] args) {
-        // get image
-        double[] pixels = BMPInterface.readBMP("jaffe/KA.AN1.39.tiff.bmp");
-        int width = BMPInterface.WIDTH;
-        int height = BMPInterface.HEIGHT;
+        // get images
+        double[][] images = BMPInterface.readAllBMPInDir("jaffe");
+        int imglen = images[0].length;
 
-        // edit
-        for (int i=0; i<pixels.length; i++) {
-            // salt and pepper mask
-            if ((i/width)%2==0) {
-                pixels[i] = i%2;
             }
         }
 

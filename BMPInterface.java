@@ -92,4 +92,12 @@ public class BMPInterface {
             });
     }
 
+    public static double[][] readAllBMPInDir(String path) {
+        File[] files = listBMPInDir(path);
+        double[][] ret = new double[files.length][];
+        for (int i=0; i<files.length; i++) {
+            ret[i] = readBMP(files[i]);
+        }
+        return ret;
+    }
 }
