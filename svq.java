@@ -30,6 +30,16 @@ public class svq {
         }
         byte[] bytearray = baos.toByteArray();
 
+        // to BufferedImage
+        ByteArrayInputStream bais = new ByteArrayInputStream(bytearray);
+        BufferedImage output = null;
+        try {
+            output = ImageIO.read(bais);
+            bais.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         System.out.println("Done!");
     }
 }
