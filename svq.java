@@ -20,6 +20,16 @@ public class svq {
             throw new RuntimeException(e);
         }
 
+        // to byte array
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+            ImageIO.write( input, "bmp", baos );
+            baos.flush();
+        } catch (IOException e) {
+
+        }
+        byte[] bytearray = baos.toByteArray();
+
         System.out.println("Done!");
     }
 }
