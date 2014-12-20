@@ -17,18 +17,33 @@ public class SVQ {
     }
 
     public static void main(String[] args) {
-        // get images
         double[][] images = BMPInterface.readAllBMPInDir("jaffe");
 
-        // compute average image
-        double[] avg = BMPInterface.average(images);
-        double[] rescaled = BMPInterface.rescale(avg);
+        RollingAverage avg = new RollingAverage(images[0].length);
+        int i=0;
+        double[] res;
 
-        // save
+        // first half
+        for (; i<images.length/2; i++) {
+            avg.add(images[i]);
+        }
+        res = BMPInterface.rescale(avg.getAvg());
+        BMPInterface.writeBMP(res, "half.bmp");
+        
+        // second half
+        for (; i<images.length; i++) {
+            avg.add(images[i]);
+        }
+        res = BMPInterface.rescale(avg.getAvg());
+        BMPInterface.writeBMP(res, "full.bmp");
+
+        // reference
+        res = BMPInterface.rescale(BMPInterface.average(images));
+        BMPInterface.writeBMP(res, "out.bmp");
+
+
         System.out.println(BMPInterface.HEIGHT + "x" + 
             BMPInterface.WIDTH + "x" + images.length);
-        BMPInterface.writeBMP(rescaled, "out.bmp");
-
         System.out.println("Done!");
     }
 }
