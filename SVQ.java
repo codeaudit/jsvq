@@ -12,6 +12,8 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 public class SVQ {
+    public static int HEIGHT=0;
+    public static int WIDTH=0;
 
     public static void printvec(byte[] vec) {
         for (int i=0; i<vec.length; i++) {
@@ -43,46 +45,58 @@ public class SVQ {
         return ret;
     }
 
-    public static void main(String[] args) 
+    public static double[] readBMP(String path)
     throws IOException {
         // read image
-        BufferedImage img = ImageIO.read(new File("jaffe/KA.AN1.39.tiff.bmp"));
-        int height = img.getHeight()/4;
-        int width = img.getWidth()/4;
-
-        // make sure it's grayscale ubytes
-        int desiredType = BufferedImage.TYPE_BYTE_GRAY;
-        if(img.getType()!=desiredType) {
+        BufferedImage img = ImageIO.read(new File(path));
+        if (HEIGHT == 0 && WIDTH == 0) { // avoid multiple setting
+            HEIGHT = img.getHeight();
+            WIDTH  = img.getWidth();
+        }
+        // make sure it's grayscale (one byte per pixel)
+        if(img.getType()!=BufferedImage.TYPE_BYTE_GRAY) {
             System.out.println("Converting to grayscale...");
-            img = new BufferedImage(width,height,desiredType);
+            img = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_BYTE_GRAY);
         }
 
-        // get pixels
-        byte[] pixels = new byte[width*height];
-        WritableRaster ras = img.getRaster();
-        int minX = ras.getMinX();
-        int minY = ras.getMinY();
-        ras.getDataElements(minX, minY,width,height,pixels);
+        // return array of pixels
+        byte[] pixels = new byte[WIDTH*HEIGHT];
+        img.getRaster().getDataElements(0,0,WIDTH,HEIGHT,pixels);
+        return toDouble(pixels);
+    }
 
-        // manipulation
-        double[] tmp = toDouble(pixels);
-        for (int i=0; i<tmp.length; i++) {
-            if (i%2==0 && (i/width)%2==0) {
-                tmp[i] = 0;
-            } else {
-                tmp[i] = 1;
-            }
-        }
-        printvec(pixels);
-        printvec(tmp);
-        printvec(toByte(tmp));
+    public static void writeBMP(double[] pixels, String path)
+    throws IOException {
+        // make image
+        BufferedImage image = new BufferedImage(
+            HEIGHT, WIDTH,BufferedImage.TYPE_BYTE_GRAY);
 
         //set pixels
-        ras.setDataElements(minX, minY,width,height,toByte(tmp));
+        image.getRaster().setDataElements(0,0,WIDTH,HEIGHT,toByte(pixels));
 
-        // save result
-        System.out.println(height + "x" + width + " - " + pixels.length);
-        ImageIO.write(img, "BMP", new File("out.bmp"));
+        // write file
+        ImageIO.write(image, "BMP", new File(path));
+
+    }
+
+    public static void main(String[] args)
+    throws IOException {
+        // get image
+        double[] pixels = readBMP("jaffe/KA.AN1.39.tiff.bmp");
+
+        // edit
+        for (int i=0; i<pixels.length; i++) {
+            // salt and pepper grid square
+            if (i%2==0 && (i/WIDTH)%2==0) {
+                pixels[i] = 0;
+            } else {
+                pixels[i] = 1;
+            }
+        }
+
+        // save
+        System.out.println(HEIGHT + "x" + WIDTH + " - " + pixels.length);
+        writeBMP(pixels, "out.bmp");
 
         System.out.println("Done!");
     }
