@@ -17,6 +17,22 @@ public class svq {
         System.out.println();
     }
 
+    public static double[] toDouble(byte[] vec) {
+        double[] ret = new double[vec.length];
+        for (int i=0; i<vec.length; i++) {
+            ret[i] = (double)(vec[i]);
+        }
+        return ret;
+    }
+
+    public static byte[] toByte(double[] vec) {
+        byte[] ret = new byte[vec.length];
+        for (int i=0; i<vec.length; i++) {
+            ret[i] = (byte)(vec[i]);
+        }
+        return ret;
+    }
+
     public static void main(String[] args) 
     throws IOException {
         // read image
@@ -39,14 +55,15 @@ public class svq {
         ras.getDataElements(minX, minY,width,height,pixels);
 
         // manipulation
-        for (int i=0; i<pixels.length; i++) {
+        double[] tmp = toDouble(pixels);
+        for (int i=0; i<tmp.length; i++) {
             // bytes in java are only signed. -1 is white BMP.
-            pixels[i] = (byte)(-1);
-            // pixels[i] = (byte)(-128);
+            tmp[i] = -1;
+            // tmp[i] = (byte)(-128);
         }
 
         //set pixels
-        ras.setDataElements(minX, minY,width,height,pixels);
+        ras.setDataElements(minX, minY,width,height,toByte(tmp));
 
         // save result
         System.out.println(height + "x" + width + " - " + pixels.length);
