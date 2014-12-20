@@ -19,32 +19,13 @@ public class SVQ {
     public static void main(String[] args) {
         // get images
         double[][] images = BMPInterface.readAllBMPInDir("jaffe");
-        int imglen = images[0].length;
 
         // compute average image
-        double[] avg = new double[imglen];
-        double min, max, val, avgmin=0, avgmax=0;
-        for (int pixidx=0; pixidx<imglen; pixidx++) {
-            avg[pixidx] = 0;
-            min = max = images[0][pixidx];
-            for (int imgidx=0; imgidx<images.length; imgidx++) {
-                val = images[imgidx][pixidx]; // just a shorthand
-                if (val<min) { min = val; }
-                if (val>max) { max = val; }
-                avg[pixidx] += val;
-            }
-            avg[pixidx] /= images.length;
-            if (pixidx==0){ avgmin = avgmax = images[0][0]; } // for later rescaling
-            if (avg[pixidx]<avgmin) { avgmin=avg[pixidx]; }
-            if (avg[pixidx]>avgmax) { avgmax=avg[pixidx]; }
-        }
-        // rescaling
-        for (int pixidx=0; pixidx<imglen; pixidx++) {
-            avg[pixidx] = ((avg[pixidx] - avgmin) / (avgmax - avgmin));
-        }
+        double[] avg = BMPInterface.rescaledAverage(images);
 
         // save
-        System.out.println(BMPInterface.HEIGHT + "x" + BMPInterface.WIDTH + " - " + avg.length);
+        System.out.println(BMPInterface.HEIGHT + "x" + 
+            BMPInterface.WIDTH + "x" + images.length);
         BMPInterface.writeBMP(avg, "out.bmp");
 
         System.out.println("Done!");

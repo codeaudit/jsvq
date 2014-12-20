@@ -100,4 +100,33 @@ public class BMPInterface {
         }
         return ret;
     }
+
+    public static double[] rescaledAverage(double[][] images) {
+        int imglen = images[0].length;
+
+        // compute average
+        double[] avg = new double[imglen];
+        double min, max, val, avgmin=0, avgmax=0;
+        for (int pixidx=0; pixidx<imglen; pixidx++) {
+            avg[pixidx] = 0;
+            min = max = images[0][pixidx];
+            for (int imgidx=0; imgidx<images.length; imgidx++) {
+                val = images[imgidx][pixidx]; // just a shorthand
+                if (val<min) { min = val; }
+                if (val>max) { max = val; }
+                avg[pixidx] += val;
+            }
+            avg[pixidx] /= images.length;
+            if (pixidx==0){ avgmin = avgmax = images[0][0]; } // for later rescaling
+            if (avg[pixidx]<avgmin) { avgmin=avg[pixidx]; }
+            if (avg[pixidx]>avgmax) { avgmax=avg[pixidx]; }
+        }
+
+        // rescale
+        for (int pixidx=0; pixidx<imglen; pixidx++) {
+            avg[pixidx] = ((avg[pixidx] - avgmin) / (avgmax - avgmin));
+        }
+
+        return avg;
+    }
 }
