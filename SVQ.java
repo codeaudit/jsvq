@@ -1,5 +1,8 @@
+// Sparse Vector Quantization test file
+
 // Get JAFFE database from http://www.kasrl.org/jaffe_info.html
 // Extract pics in folder named "jaffe"
+// Convert to bmp with `for f in $(ls *.tiff); do convert $f $f.bmp; done`
 // package image_test;
 
 import java.awt.image.BufferedImage;
@@ -8,7 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
-public class svq {
+public class SVQ {
 
     public static void printvec(byte[] vec) {
         for (int i=0; i<vec.length; i++) {
@@ -79,7 +82,7 @@ public class svq {
 
         // save result
         System.out.println(height + "x" + width + " - " + pixels.length);
-        ImageIO.write(img, "BMP", new File("test.bmp"));
+        ImageIO.write(img, "BMP", new File("out.bmp"));
 
         System.out.println("Done!");
     }
