@@ -3,26 +3,30 @@
 // Get JAFFE database from http://www.kasrl.org/jaffe_info.html
 // Extract pics in folder named "jaffe"
 // Convert to bmp with `for f in $(ls *.tiff); do convert $f $f.bmp; done`
-// package image_test;
+
+import java.io.File;
 
 public class SVQ {
-    public static void main(String[] args) {
-        // get image
-        double[] pixels = BMPInterface.readBMP("jaffe/KA.AN1.39.tiff.bmp");
-        int width = BMPInterface.WIDTH;
-        int height = BMPInterface.HEIGHT;
-
-        // edit
-        for (int i=0; i<pixels.length; i++) {
-            // salt and pepper mask
-            if ((i/width)%2==0) {
-                pixels[i] = i%2;
-            }
+    public static double dot(double[] a, double[] b) {
+        if (a.length != b.length) { throw new RuntimeException("Lengths don't match!");}
+        double ret = 0;
+        for (int i=0; i<a.length; i++) {
+            ret += a[i] * b[i];
         }
+        return ret;
+    }
+
+    public static void main(String[] args) {
+        // get images
+        double[][] images = BMPInterface.readAllBMPInDir("jaffe");
+
+        // compute average image
+        double[] avg = BMPInterface.rescaledAverage(images);
 
         // save
-        System.out.println(height + "x" + width + " - " + pixels.length);
-        BMPInterface.writeBMP(pixels, "out.bmp");
+        System.out.println(BMPInterface.HEIGHT + "x" + 
+            BMPInterface.WIDTH + "x" + images.length);
+        BMPInterface.writeBMP(avg, "out.bmp");
 
         System.out.println("Done!");
     }

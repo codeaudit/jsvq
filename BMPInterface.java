@@ -1,6 +1,7 @@
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
@@ -39,10 +40,14 @@ public class BMPInterface {
     }
 
     public static double[] readBMP(String path){
+        return readBMP(new File(path));
+    }
+
+    public static double[] readBMP(File file){
         // read image
         BufferedImage img;
         try { 
-            img = ImageIO.read(new File(path)); 
+            img = ImageIO.read(file); 
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -76,5 +81,52 @@ public class BMPInterface {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static File[] listBMPInDir(String path){
+        return new File(path).listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.endsWith(".bmp");
+                }
+            });
+    }
+
+    public static double[][] readAllBMPInDir(String path) {
+        File[] files = listBMPInDir(path);
+        double[][] ret = new double[files.length][];
+        for (int i=0; i<files.length; i++) {
+            ret[i] = readBMP(files[i]);
+        }
+        return ret;
+    }
+
+    public static double[] rescaledAverage(double[][] images) {
+        int imglen = images[0].length;
+
+        // compute average
+        double[] avg = new double[imglen];
+        double min, max, val, avgmin=0, avgmax=0;
+        for (int pixidx=0; pixidx<imglen; pixidx++) {
+            avg[pixidx] = 0;
+            min = max = images[0][pixidx];
+            for (int imgidx=0; imgidx<images.length; imgidx++) {
+                val = images[imgidx][pixidx]; // just a shorthand
+                if (val<min) { min = val; }
+                if (val>max) { max = val; }
+                avg[pixidx] += val;
+            }
+            avg[pixidx] /= images.length;
+            if (pixidx==0){ avgmin = avgmax = images[0][0]; } // for later rescaling
+            if (avg[pixidx]<avgmin) { avgmin=avg[pixidx]; }
+            if (avg[pixidx]>avgmax) { avgmax=avg[pixidx]; }
+        }
+
+        // rescale
+        for (int pixidx=0; pixidx<imglen; pixidx++) {
+            avg[pixidx] = ((avg[pixidx] - avgmin) / (avgmax - avgmin));
+        }
+
+        return avg;
     }
 }
