@@ -101,32 +101,33 @@ public class BMPInterface {
         return ret;
     }
 
-    public static double[] rescaledAverage(double[][] images) {
+    public static double[] average(double[][] images) {
         int imglen = images[0].length;
-
-        // compute average
         double[] avg = new double[imglen];
-        double min, max, val, avgmin=0, avgmax=0;
         for (int pixidx=0; pixidx<imglen; pixidx++) {
             avg[pixidx] = 0;
-            min = max = images[0][pixidx];
             for (int imgidx=0; imgidx<images.length; imgidx++) {
-                val = images[imgidx][pixidx]; // just a shorthand
-                if (val<min) { min = val; }
-                if (val>max) { max = val; }
-                avg[pixidx] += val;
+                avg[pixidx] += images[imgidx][pixidx];
             }
             avg[pixidx] /= images.length;
-            if (pixidx==0){ avgmin = avgmax = images[0][0]; } // for later rescaling
-            if (avg[pixidx]<avgmin) { avgmin=avg[pixidx]; }
-            if (avg[pixidx]>avgmax) { avgmax=avg[pixidx]; }
-        }
-
-        // rescale
-        for (int pixidx=0; pixidx<imglen; pixidx++) {
-            avg[pixidx] = ((avg[pixidx] - avgmin) / (avgmax - avgmin));
         }
 
         return avg;
+    }
+
+    public static double[] rescale(double[] image) {
+        double min=image[0],max=image[0];
+        // find min/max
+        for (int i=0; i<image.length; i++) {
+            if (image[i]<min) { min=image[i]; }
+            if (image[i]>max) { max=image[i]; }
+        }
+        // rescale
+        double[] ret = new double[image.length];
+        for (int i=0; i<image.length; i++) {
+            ret[i] = ((image[i] - min) / (max - min));
+        }
+        
+        return ret;
     }
 }
