@@ -30,6 +30,18 @@ public class svq {
         }
         byte[] bytearray = baos.toByteArray();
 
+        // manipulation
+        int height = input.getHeight();
+        int width = input.getWidth();
+        int pixel;
+
+        System.out.println(height + "x" + width);
+
+        for (int i=5; i<4000; i++) {
+            // bytearray[i] = (byte)(bytearray[i]+100%255);
+            bytearray[i] = (byte)(255);
+        }
+
         // to BufferedImage
         ByteArrayInputStream bais = new ByteArrayInputStream(bytearray);
         BufferedImage output = null;
