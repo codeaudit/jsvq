@@ -40,6 +40,13 @@ public class svq {
             throw new RuntimeException(e);
         }
 
+        // save result
+        try {
+            ImageIO.write(output, "BMP", new File("test.bmp"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         System.out.println("Done!");
     }
 }
