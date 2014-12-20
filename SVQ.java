@@ -21,12 +21,13 @@ public class SVQ {
         double[][] images = BMPInterface.readAllBMPInDir("jaffe");
 
         // compute average image
-        double[] avg = BMPInterface.rescaledAverage(images);
+        double[] avg = BMPInterface.average(images);
+        double[] rescaled = BMPInterface.rescale(avg);
 
         // save
         System.out.println(BMPInterface.HEIGHT + "x" + 
             BMPInterface.WIDTH + "x" + images.length);
-        BMPInterface.writeBMP(avg, "out.bmp");
+        BMPInterface.writeBMP(rescaled, "out.bmp");
 
         System.out.println("Done!");
     }
