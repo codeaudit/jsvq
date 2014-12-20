@@ -1,6 +1,7 @@
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
@@ -81,4 +82,14 @@ public class BMPInterface {
             throw new RuntimeException(e);
         }
     }
+
+    public static File[] listBMPInDir(String path){
+        return new File(path).listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.endsWith(".bmp");
+                }
+            });
+    }
+
 }
