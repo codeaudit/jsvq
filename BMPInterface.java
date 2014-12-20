@@ -39,10 +39,14 @@ public class BMPInterface {
     }
 
     public static double[] readBMP(String path){
+        return readBMP(new File(path));
+    }
+
+    public static double[] readBMP(File file){
         // read image
         BufferedImage img;
         try { 
-            img = ImageIO.read(new File(path)); 
+            img = ImageIO.read(file); 
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
