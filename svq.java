@@ -3,61 +3,54 @@
 // package image_test;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.ByteArrayInputStream;
+import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
 public class svq {
 
-    public static void main(String[] args) {
+    public static void printvec(byte[] vec){
+        for (int i=0; i<vec.length; i++) {
+            System.out.print(vec[i] + " ");
+        }
+        System.out.println();
+    }
+
+    public static void main(String[] args) 
+    throws IOException {
         // read image
-        BufferedImage input = null;
-        try {
-            input = ImageIO.read(new File("jaffe/KA.AN1.39.tiff.bmp"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        BufferedImage img = ImageIO.read(new File("jaffe/KA.AN1.39.tiff.bmp"));
+        int height = img.getHeight()/2;
+        int width = img.getWidth()/2;
+
+        // make sure it's grayscale ubytes
+        int desiredType = BufferedImage.TYPE_BYTE_GRAY;
+        if(img.getType()!=desiredType) {
+            System.out.println("Converting to grayscale...");
+            img = new BufferedImage(width,height,desiredType);
         }
 
-        // to byte array
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try {
-            ImageIO.write( input, "bmp", baos );
-            baos.flush();
-        } catch (IOException e) {
-
-        }
-        byte[] bytearray = baos.toByteArray();
+        // get pixels
+        byte[] pixels = new byte[width*height];
+        WritableRaster ras = img.getRaster();
+        int minX = ras.getMinX();
+        int minY = ras.getMinY();
+        ras.getDataElements(minX, minY,width,height,pixels);
 
         // manipulation
-        int height = input.getHeight();
-        int width = input.getWidth();
-        int pixel;
-
-        System.out.println(height + "x" + width);
-
-        for (int i=5; i<4000; i++) {
-            // bytearray[i] = (byte)(bytearray[i]+100%255);
-            bytearray[i] = (byte)(255);
+        for (int i=0; i<pixels.length; i++) {
+            // bytes in java are only signed. -1 is white BMP.
+            pixels[i] = (byte)(-1);
+            // pixels[i] = (byte)(-128);
         }
 
-        // to BufferedImage
-        ByteArrayInputStream bais = new ByteArrayInputStream(bytearray);
-        BufferedImage output = null;
-        try {
-            output = ImageIO.read(bais);
-            bais.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        //set pixels
+        ras.setDataElements(minX, minY,width,height,pixels);
 
         // save result
-        try {
-            ImageIO.write(output, "BMP", new File("test.bmp"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        System.out.println(height + "x" + width + " - " + pixels.length);
+        ImageIO.write(img, "BMP", new File("test.bmp"));
 
         System.out.println("Done!");
     }
