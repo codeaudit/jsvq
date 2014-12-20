@@ -45,10 +45,14 @@ public class SVQ {
         return ret;
     }
 
-    public static double[] readBMP(String path)
-    throws IOException {
+    public static double[] readBMP(String path){
         // read image
-        BufferedImage img = ImageIO.read(new File(path));
+        BufferedImage img;
+        try { 
+            img = ImageIO.read(new File(path)); 
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         if (HEIGHT == 0 && WIDTH == 0) { // avoid multiple setting
             HEIGHT = img.getHeight();
             WIDTH  = img.getWidth();
@@ -65,8 +69,7 @@ public class SVQ {
         return toDouble(pixels);
     }
 
-    public static void writeBMP(double[] pixels, String path)
-    throws IOException {
+    public static void writeBMP(double[] pixels, String path) {
         // make image
         BufferedImage image = new BufferedImage(
             HEIGHT, WIDTH,BufferedImage.TYPE_BYTE_GRAY);
@@ -75,12 +78,14 @@ public class SVQ {
         image.getRaster().setDataElements(0,0,WIDTH,HEIGHT,toByte(pixels));
 
         // write file
-        ImageIO.write(image, "BMP", new File(path));
-
+        try { 
+            ImageIO.write(image, "BMP", new File(path));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public static void main(String[] args)
-    throws IOException {
+    public static void main(String[] args) {
         // get image
         double[] pixels = readBMP("jaffe/KA.AN1.39.tiff.bmp");
 
