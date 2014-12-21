@@ -1,3 +1,5 @@
 *.bmp
 *.class
 jaffe
+tmp
+out

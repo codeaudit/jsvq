@@ -2,33 +2,108 @@
 
 // Get JAFFE database from http://www.kasrl.org/jaffe_info.html
 // Extract pics in folder named "jaffe"
-// Convert to bmp with `for f in $(ls *.tiff); do convert $f $f.bmp; done`
+// Convert to bmp with `ls *.tiff | while read f; do convert "$f" "${f%.*}.bmp"; done`
 
 import java.io.File;
 
 public class SVQ {
-    public static double dot(double[] a, double[] b) {
-        if (a.length != b.length) { throw new RuntimeException("Lengths don't match!");}
-        double ret = 0;
-        for (int i=0; i<a.length; i++) {
-            ret += a[i] * b[i];
+
+    Centroid[] centroids;
+
+    public SVQ(int ncentr, int centrSize) {
+        centroids = new Centroid[ncentr];
+        for (int i=0; i<centroids.length; i++) {
+            centroids[i] = new Centroid(centrSize);
+        }
+    }
+
+    public double[] similarities(double[] vec) {
+        double[] ret = new double[centroids.length];
+        for (int i=0; i<centroids.length; i++) {
+            ret[i] = centroids[i].similarity(vec);
+        }
+        return ret;
+    }
+
+    public int maxidx(double[] vec) {
+        int ret=0;
+        double max=vec[ret];
+        for (int i=1; i<vec.length; i++) {
+            if (vec[i] > max) {
+                max = vec[i];
+                ret = i;
+            }
+        }
+        return ret;
+    }
+
+    // train on single image
+    public void train(double[] img) {
+        double[] code = similarities(img);
+        int closest = maxidx(code);
+        System.out.println("Training centroid "+closest);
+        System.out.println("\tSimilarity: "+code[closest]);
+        // train the closest centroid
+        centroids[closest].train(img);
+        System.out.println();
+    }
+
+    // train on set of images
+    public void train(double[][] imgs) {
+        for (int i=0; i<imgs.length; i++) {
+            train(imgs[i]);
+        }
+    }
+
+    public double[][] getData() {
+        double[][] ret = new double[centroids.length][];
+        for (int i=0; i<centroids.length; i++) {
+            ret[i] = centroids[i].getData();
         }
         return ret;
     }
 
     public static void main(String[] args) {
-        // get images
-        double[][] images = BMPInterface.readAllBMPInDir("jaffe");
 
-        // compute average image
-        double[] avg = BMPInterface.rescaledAverage(images);
+        int NCENTR = 4;
 
-        // save
-        System.out.println(BMPInterface.HEIGHT + "x" + 
-            BMPInterface.WIDTH + "x" + images.length);
-        BMPInterface.writeBMP(avg, "out.bmp");
+        // load images
+        BMPLoader bmp = new BMPLoader("jaffe", "out");
+        double[][] images = bmp.readAll(NCENTR*2);
+        System.out.println("Elaborating images: " +
+            images.length + "x" + bmp.height + "x" + bmp.width);
+        System.out.println();
 
-        System.out.println("Done!");
+        SVQ svq = new SVQ(NCENTR, images[0].length);
+        int i=0;
+        double[] res;
+
+        // check selected images
+        bmp.saveAll(images, "image");
+        // check initial centroids
+        bmp.saveAll(svq.getData(), "orig");
+        // check all steps
+        for (; i<images.length; i++) {
+            svq.train(images[i]);
+            bmp.saveAll(svq.getData(), "stage"+i);
+        }
+/*
+        // initial
+        bmp.saveAll(svq.getData(), "init");
+
+        // first half
+        for (; i<images.length/2; i++) {
+            svq.train(images[i]);
+        }
+        bmp.saveAll(svq.getData(), "half");
+
+        // second half
+        for (; i<images.length; i++) {
+            svq.train(images[i]);
+        }
+        bmp.saveAll(svq.getData(), "full");
+*/
+        System.out.println("\nDone!");
     }
 }
 
