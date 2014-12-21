@@ -63,29 +63,30 @@ public class SVQ {
         int NCENTR = 4;
 
         // load images
-        double[][] images = BMPInterface.readAllBMPInDir("jaffe");
+        BMPLoader bmp = new BMPLoader("jaffe", "tmp");
+        double[][] images = bmp.readAll();
+        System.out.println("Elaborating images: " +
+            images.length + "x" + bmp.height + "x" + bmp.width);
 
         SVQ svq = new SVQ(NCENTR, images[0].length);
         int i=0;
         double[] res;
 
         // initial
-        BMPInterface.writeBMPs(svq.getData(), "tmp/init");
+        bmp.saveAll(svq.getData(), "init");
 
         // first half
         for (; i<images.length/2; i++) {
             svq.train(images[i]);
         }
-        BMPInterface.writeBMPs(svq.getData(), "tmp/half");
+        bmp.saveAll(svq.getData(), "half");
         
         // second half
         for (; i<images.length; i++) {
             svq.train(images[i]);
         }
-        BMPInterface.writeBMPs(svq.getData(), "tmp/full");
+        bmp.saveAll(svq.getData(), "full");
 
-        System.out.println(BMPInterface.HEIGHT + "x" + 
-            BMPInterface.WIDTH + "x" + images.length);
         System.out.println("Done!");
     }
 }

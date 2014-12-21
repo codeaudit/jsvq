@@ -5,25 +5,18 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
-public class BMPInterface {
-    public static int HEIGHT=0;
-    public static int WIDTH=0;
+public class BMPLoader {
+    public int height=0;
+    public int width=0;
+    public String inputDir;
+    public String outputDir;
 
-    public static void printvec(byte[] vec) {
-        for (int i=0; i<vec.length; i++) {
-            System.out.print(vec[i] + " ");
-        }
-        System.out.println();
+    public BMPLoader(String in, String out) {
+        this.inputDir = in;
+        this.outputDir = out;
     }
 
-    public static void printvec(double[] vec) {
-        for (int i=0; i<vec.length; i++) {
-            System.out.print(vec[i] + " ");
-        }
-        System.out.println();
-    }
-
-    public static double[] toDouble(byte[] vec) {
+    public double[] toDouble(byte[] vec) {
         double[] ret = new double[vec.length];
         for (int i=0; i<vec.length; i++) {
             ret[i] = (double)(vec[i] & 0xFF) / 255;
@@ -31,7 +24,7 @@ public class BMPInterface {
         return ret;
     }
 
-    public static byte[] toByte(double[] vec) {
+    public byte[] toByte(double[] vec) {
         byte[] ret = new byte[vec.length];
         for (int i=0; i<vec.length; i++) {
             ret[i] = (byte)(vec[i] * 255);
@@ -39,11 +32,11 @@ public class BMPInterface {
         return ret;
     }
 
-    public static double[] readBMP(String path){
+    public double[] readBMP(String path){
         return readBMP(new File(path));
     }
 
-    public static double[] readBMP(File file){
+    public double[] readBMP(File file){
         // read image
         BufferedImage img;
         try { 
@@ -51,29 +44,29 @@ public class BMPInterface {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        if (HEIGHT == 0 && WIDTH == 0) { // avoid multiple setting
-            HEIGHT = img.getHeight();
-            WIDTH  = img.getWidth();
+        if (height == 0 && width == 0) { // avoid multiple setting
+            height = img.getHeight();
+            width  = img.getWidth();
         }
         // make sure it's grayscale (one byte per pixel)
         if(img.getType()!=BufferedImage.TYPE_BYTE_GRAY) {
-            System.err.println("Converting to grayscale...");
-            img = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_BYTE_GRAY);
+            // System.err.println("Converting to grayscale..."); // too verbose
+            img = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
         }
 
         // return array of pixels
-        byte[] pixels = new byte[WIDTH*HEIGHT];
-        img.getRaster().getDataElements(0,0,WIDTH,HEIGHT,pixels);
+        byte[] pixels = new byte[width*height];
+        img.getRaster().getDataElements(0,0,width,height,pixels);
         return toDouble(pixels);
     }
 
-    public static void writeBMP(double[] pixels, String path) {
+    public void writeBMP(double[] pixels, String path) {
         // make image
         BufferedImage image = new BufferedImage(
-            HEIGHT, WIDTH,BufferedImage.TYPE_BYTE_GRAY);
+            height, width,BufferedImage.TYPE_BYTE_GRAY);
 
         //set pixels
-        image.getRaster().setDataElements(0,0,WIDTH,HEIGHT,toByte(pixels));
+        image.getRaster().setDataElements(0,0,width,height,toByte(pixels));
 
         // write file
         try { 
@@ -83,13 +76,21 @@ public class BMPInterface {
         }
     }
 
-    public static void writeBMPs(double[][] imgs, String basename) {
+    public void saveAll(double[][] imgs, String basename) {
+        writeBMPs(imgs, outputDir+"/"+basename);
+    }
+
+    public void writeBMPs(double[][] imgs, String basename) {
         for (int i=0; i<imgs.length; i++) {
             writeBMP(imgs[i], basename+"_"+(i+1)+".bmp");
         }
     }
 
-    public static File[] listBMPInDir(String path){
+    public File[] listBMP(){
+        return listBMPInDir(inputDir);
+    }
+
+    public File[] listBMPInDir(String path){
         return new File(path).listFiles(new FilenameFilter() {
                 @Override
                 public boolean accept(File dir, String name) {
@@ -98,16 +99,24 @@ public class BMPInterface {
             });
     }
 
-    public static double[][] readAllBMPInDir(String path) {
+    public double[][] readAll() {
+        return readAllBMPInDir(inputDir);
+    }
+
+    public double[][] readAllBMPInDir(String path) {
         File[] files = listBMPInDir(path);
         double[][] ret = new double[files.length][];
-        for (int i=0; i<files.length; i++) {
+        System.out.println("Loading all BMP files in path `"+path+"`");
+        int i;
+        for (i=0; i<files.length; i++) {
+            System.out.print(".");
             ret[i] = readBMP(files[i]);
         }
+        System.out.println("\nLoaded "+i+" files.");
         return ret;
     }
 
-    public static double[] average(double[][] images) {
+    public double[] average(double[][] images) {
         int imglen = images[0].length;
         double[] avg = new double[imglen];
         for (int pixidx=0; pixidx<imglen; pixidx++) {
@@ -121,7 +130,8 @@ public class BMPInterface {
         return avg;
     }
 
-    public static double[] rescale(double[] image) {
+    // Rescales an array of values to range [0,1]
+    public double[] rescale(double[] image) {
         double min=image[0],max=image[0];
         // find min/max
         for (int i=0; i<image.length; i++) {
