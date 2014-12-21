@@ -57,7 +57,7 @@ public class BMPInterface {
         }
         // make sure it's grayscale (one byte per pixel)
         if(img.getType()!=BufferedImage.TYPE_BYTE_GRAY) {
-            System.out.println("Converting to grayscale...");
+            System.err.println("Converting to grayscale...");
             img = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_BYTE_GRAY);
         }
 
@@ -80,6 +80,12 @@ public class BMPInterface {
             ImageIO.write(image, "BMP", new File(path));
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void writeBMPs(double[][] imgs, String basename) {
+        for (int i=0; i<imgs.length; i++) {
+            writeBMP(imgs[i], basename+"_"+(i+1)+".bmp");
         }
     }
 
