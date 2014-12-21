@@ -51,7 +51,10 @@ public class BMPLoader {
         // make sure it's grayscale (one byte per pixel)
         if(img.getType()!=BufferedImage.TYPE_BYTE_GRAY) {
             // System.err.println("Converting to grayscale..."); // too verbose
-            img = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+            BufferedImage tmp = new BufferedImage(
+                width, height, BufferedImage.TYPE_BYTE_GRAY);
+            tmp.getGraphics().drawImage(img,0,0,null);
+            img = tmp;
         }
 
         // return array of pixels
@@ -119,6 +122,7 @@ public class BMPLoader {
         int i;
         for (i=0; i<limit; i++) {
             System.out.print(".");
+            // System.out.println("Loading "+files[i]); // too verbose
             ret[i] = readBMP(files[i]);
         }
         System.out.println("\nLoaded "+i+" files.");
