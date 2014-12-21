@@ -25,6 +25,24 @@ public class SVQ {
         return ret;
     }
 
+    // Wrote half asleep, refactor it
+    public double[] reconstruct(double[] code) {
+        if (code.length != centroids.length) {
+            throw new RuntimeException(
+                "Code length does not match number of centroids.");
+        }
+        int imgsize = centroids[0].size;
+        double[] ret = new double[imgsize];
+        for (int i=0; i<ret.length; i++) { ret[i] = 0d; }
+        for (int coord=0; coord<imgsize; coord++) {
+            for (int centr=0; centr<centroids.length; centr++) {
+                ret[coord] += code[centr]*(centroids[centr].getData()[coord]);
+            }
+            // ret[coord] /= centroids.length;
+        }
+        return (new BMPLoader("","")).rescale(ret);
+    }
+
     public int maxidx(double[] vec) {
         int ret=0;
         double max=vec[ret];
@@ -61,46 +79,37 @@ public class SVQ {
     }
 
     public static void main(String[] args) {
+        BMPLoader bmp = new BMPLoader("jaffe", "out");
 
-        int NCENTR = 4;
+        // number of centroids
+        int NCENTR  = 8;
+        // size of training set
+        int NTRAIN  = 100; // (bmp.listBMP().length/4)
+        // size of validation set
+        int NVALID  = 4;
 
         // load images
-        BMPLoader bmp = new BMPLoader("jaffe", "out");
-        double[][] images = bmp.readAll((bmp.listBMP().length/4)*4);
+        double[][] images = bmp.readAll(NTRAIN);
         System.out.println("Elaborating images: " +
             images.length + "x" + bmp.height + "x" + bmp.width);
-        System.out.println();
 
+        // train
         SVQ svq = new SVQ(NCENTR, images[0].length);
-        int i=0;
-        double[] res;
+        svq.train(images);
+        bmp.saveAll(svq.getData(), "centr");
 
-        // check selected images
-        bmp.saveAll(images, "image");
-        // check initial centroids
-        bmp.saveAll(svq.getData(), "orig");
-        // check all steps
-        for (; i<images.length; i++) {
-            System.out.print("Image "+i);
-            svq.train(images[i]);
-            bmp.saveAll(svq.getData(), "stage"+i);
+        // reconstruct
+        double[][] reconstructions = new double[NVALID][];
+        double[] img, code;
+        for (int i=0; i<NVALID; i++) {
+            img = images[10*i];
+            bmp.save(img, "image_"+i);
+            code = svq.code(img);
+            reconstructions[i] = svq.reconstruct(code);
         }
-/*
-        // initial
-        bmp.saveAll(svq.getData(), "init");
+        bmp.saveAll(reconstructions, "reconstr");
 
-        // first half
-        for (; i<images.length/2; i++) {
-            svq.train(images[i]);
-        }
-        bmp.saveAll(svq.getData(), "half");
 
-        // second half
-        for (; i<images.length; i++) {
-            svq.train(images[i]);
-        }
-        bmp.saveAll(svq.getData(), "full");
-*/
         System.out.println("\nDone!");
     }
 }
