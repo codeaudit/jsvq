@@ -41,8 +41,11 @@ public class SVQ {
     public void train(double[] img) {
         double[] code = similarities(img);
         int closest = maxidx(code);
+        System.out.println("Training centroid "+closest);
+        System.out.println("\tSimilarity: "+code[closest]);
         // train the closest centroid
         centroids[closest].train(img);
+        System.out.println();
     }
 
     // train on set of images
@@ -65,10 +68,11 @@ public class SVQ {
         int NCENTR = 4;
 
         // load images
-        BMPLoader bmp = new BMPLoader("jaffe", "tmp");
-        double[][] images = bmp.readAll(4);
+        BMPLoader bmp = new BMPLoader("jaffe", "out");
+        double[][] images = bmp.readAll(NCENTR*2);
         System.out.println("Elaborating images: " +
             images.length + "x" + bmp.height + "x" + bmp.width);
+        System.out.println();
 
         SVQ svq = new SVQ(NCENTR, images[0].length);
         int i=0;
@@ -92,14 +96,14 @@ public class SVQ {
             svq.train(images[i]);
         }
         bmp.saveAll(svq.getData(), "half");
-        
+
         // second half
         for (; i<images.length; i++) {
             svq.train(images[i]);
         }
         bmp.saveAll(svq.getData(), "full");
 */
-        System.out.println("Done!");
+        System.out.println("\nDone!");
     }
 }
 

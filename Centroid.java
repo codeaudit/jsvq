@@ -10,6 +10,7 @@ class Centroid {
         for (int i = 0; i < size; i++) { data[i] = Math.random(); }
     }
 
+    // Quick error check for vector size consistency
     public void checkSize(double[] vec) {
         if (vec.length != size) {
             throw new RuntimeException(
@@ -17,17 +18,32 @@ class Centroid {
         }
     }
 
+    // Per-centroid learning rate
     public double lrate() {
-        // (linearly decaying) learning rate
-        return 1/ntrains;
+        // linearly decaying
+        return 1d/ntrains;
     }
 
     public void train(double[] vec) {
         checkSize(vec);
-        for (int i=0; i<vec.length; i++) {
+
+        System.out.println("\tLR: "+lrate());
+        double tot = 0;
+        for (int i=0; i<size; i++) {
+            tot += data[i];
+        }
+        System.out.println("\ttot pre:  "+ tot);
+
+        for (int i=0; i<size; i++) {
             data[i] = data[i]*(1-lrate()) + vec[i]*lrate();
         }
         ntrains++;
+
+        tot = 0;
+        for (int i=0; i<size; i++) {
+            tot += data[i];
+        }
+        System.out.println("\ttot post: "+ tot);
     }
 
     public double[] getData() {
@@ -40,6 +56,7 @@ class Centroid {
 
     public double similarity(double[] vec) {
         checkSize(vec);
+        // simple dot product
         double ret = 0;
         for (int i=0; i<size; i++) {
             ret += data[i] * vec[i];
