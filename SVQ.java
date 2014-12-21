@@ -43,6 +43,19 @@ public class SVQ {
         return (new BMPLoader("","")).rescale(ret);
     }
 
+    public double reconstructionError(double[] orig, double[] reconstruction) {
+        if (orig.length != reconstruction.length) {
+            throw new RuntimeException(
+                "Original length does not match reconstruction length.");
+        }
+        double ret = 0;
+        // square error
+        for (int i=0; i<orig.length; i++) {
+            ret += Math.exp(orig[i]-reconstruction[i], 2);
+        }
+        return ret;
+    }
+
     public int maxidx(double[] vec) {
         int ret=0;
         double max=vec[ret];
