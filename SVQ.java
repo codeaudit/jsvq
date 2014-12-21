@@ -7,40 +7,82 @@
 import java.io.File;
 
 public class SVQ {
-    public static double dot(double[] a, double[] b) {
-        if (a.length != b.length) { throw new RuntimeException("Lengths don't match!");}
-        double ret = 0;
-        for (int i=0; i<a.length; i++) {
-            ret += a[i] * b[i];
+
+    Centroid[] centroids;
+
+    public SVQ(int ncentr, int centrSize) {
+        centroids = new Centroid[ncentr];
+        for (int i=0; i<centroids.length; i++) {
+            centroids[i] = new Centroid(centrSize);
+        }
+    }
+
+    public double[] similarities(double[] vec) {
+        double[] ret = new double[centroids.length];
+        for (int i=0; i<centroids.length; i++) {
+            ret[i] = centroids[i].similarity(vec);
+        }
+        return ret;
+    }
+
+    public int maxidx(double[] vec) {
+        int ret=0;
+        double max=vec[ret];
+        for (int i=1; i<vec.length; i++) {
+            if (vec[i] > max) {
+                max = vec[i];
+                ret = i;
+            }
+        }
+        return ret;
+    }
+
+    public void train(double[] img) {
+        double[] code = similarities(img);
+        int closest = maxidx(code);
+        // train the closest centroid
+        centroids[closest].train(img);
+    }
+
+    public void train(double[][] imgs) {
+        for (int i=0; i<imgs.length; i++) {
+            train(imgs[i]);
+        }
+    }
+
+    public double[][] getData() {
+        double[][] ret = new double[centroids.length][];
+        for (int i=0; i<centroids.length; i++) {
+            ret[i] = centroids[i].getData();
         }
         return ret;
     }
 
     public static void main(String[] args) {
+
+        int NCENTR = 4;
+
+        // load images
         double[][] images = BMPInterface.readAllBMPInDir("jaffe");
 
-        RollingAverage avg = new RollingAverage(images[0].length);
+        SVQ svq = new SVQ(NCENTR, images[0].length);
         int i=0;
         double[] res;
 
+        // initial
+        BMPInterface.writeBMPs(svq.getData(), "tmp/init");
+
         // first half
         for (; i<images.length/2; i++) {
-            avg.add(images[i]);
+            svq.train(images[i]);
         }
-        res = BMPInterface.rescale(avg.getAvg());
-        BMPInterface.writeBMP(res, "half.bmp");
+        BMPInterface.writeBMPs(svq.getData(), "tmp/half");
         
         // second half
         for (; i<images.length; i++) {
-            avg.add(images[i]);
+            svq.train(images[i]);
         }
-        res = BMPInterface.rescale(avg.getAvg());
-        BMPInterface.writeBMP(res, "full.bmp");
-
-        // reference
-        res = BMPInterface.rescale(BMPInterface.average(images));
-        BMPInterface.writeBMP(res, "out.bmp");
-
+        BMPInterface.writeBMPs(svq.getData(), "tmp/full");
 
         System.out.println(BMPInterface.HEIGHT + "x" + 
             BMPInterface.WIDTH + "x" + images.length);
