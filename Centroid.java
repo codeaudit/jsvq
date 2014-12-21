@@ -56,11 +56,26 @@ class Centroid {
 
     public double similarity(double[] vec) {
         checkSize(vec);
-        // simple dot product
+        // return simpleDotProduct(vec);
+        return squareDistance(vec);
+    }
+
+    // SIMILARITY MEASURES
+
+    public double simpleDotProduct(double[] vec) {
         double ret = 0;
         for (int i=0; i<size; i++) {
             ret += data[i] * vec[i];
         }
         return ret;
     }
+
+    public double squareDistance(double[] vec) {
+        double ret = 0;
+        for (int i=0; i<size; i++) {
+            ret += Math.pow(data[i] - vec[i], 2);
+        }
+        return ret;
+    }
+
 }
