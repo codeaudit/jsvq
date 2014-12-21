@@ -2,7 +2,7 @@
 
 // Get JAFFE database from http://www.kasrl.org/jaffe_info.html
 // Extract pics in folder named "jaffe"
-// Convert to bmp with `for f in $(ls *.tiff); do convert $f $f.bmp; done`
+// Convert to bmp with `ls *.tiff | while read f; do convert "$f" "${f%.*}.bmp"; done`
 
 import java.io.File;
 
@@ -37,6 +37,7 @@ public class SVQ {
         return ret;
     }
 
+    // train on single image
     public void train(double[] img) {
         double[] code = similarities(img);
         int closest = maxidx(code);
@@ -44,6 +45,7 @@ public class SVQ {
         centroids[closest].train(img);
     }
 
+    // train on set of images
     public void train(double[][] imgs) {
         for (int i=0; i<imgs.length; i++) {
             train(imgs[i]);
@@ -64,7 +66,7 @@ public class SVQ {
 
         // load images
         BMPLoader bmp = new BMPLoader("jaffe", "tmp");
-        double[][] images = bmp.readAll();
+        double[][] images = bmp.readAll(4);
         System.out.println("Elaborating images: " +
             images.length + "x" + bmp.height + "x" + bmp.width);
 
@@ -72,6 +74,16 @@ public class SVQ {
         int i=0;
         double[] res;
 
+        // check selected images
+        bmp.saveAll(images, "image");
+        // check initial centroids
+        bmp.saveAll(svq.getData(), "orig");
+        // check all steps
+        for (; i<images.length; i++) {
+            svq.train(images[i]);
+            bmp.saveAll(svq.getData(), "stage"+i);
+        }
+/*
         // initial
         bmp.saveAll(svq.getData(), "init");
 
@@ -86,7 +98,7 @@ public class SVQ {
             svq.train(images[i]);
         }
         bmp.saveAll(svq.getData(), "full");
-
+*/
         System.out.println("Done!");
     }
 }
