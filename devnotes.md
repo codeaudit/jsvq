@@ -4,6 +4,8 @@
 - Currently RunningAverage suffers from fading, add rescaling to total?
 - Make centroids moving averages of its training?
 - Threshold to add new centroids?
+- Limit decay learning rate
+- Save and load centroids
 
 ### Matrix
 - Could be useful to have space awareness in picture

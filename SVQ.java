@@ -17,7 +17,7 @@ public class SVQ {
         }
     }
 
-    public double[] similarities(double[] vec) {
+    public double[] code(double[] vec) {
         double[] ret = new double[centroids.length];
         for (int i=0; i<centroids.length; i++) {
             ret[i] = centroids[i].similarity(vec);
@@ -39,13 +39,10 @@ public class SVQ {
 
     // train on single image
     public void train(double[] img) {
-        double[] code = similarities(img);
+        double[] code = code(img);
         int closest = maxidx(code);
-        System.out.println(" - centroid "+closest);
-        System.out.println("\tSimilarity: "+code[closest]);
         // train the closest centroid
         centroids[closest].train(img);
-        System.out.println();
     }
 
     // train on set of images

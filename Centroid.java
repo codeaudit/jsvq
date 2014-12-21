@@ -27,12 +27,12 @@ class Centroid {
     public void train(double[] vec) {
         checkSize(vec);
 
-        System.out.println("\tLR: "+lrate());
+        // System.out.println("\tLR: "+lrate());
         double tot = 0;
         for (int i=0; i<size; i++) {
             tot += data[i];
         }
-        System.out.println("\ttot pre:  "+ tot);
+        // System.out.println("\ttot pre:  "+ tot);
 
         for (int i=0; i<size; i++) {
             data[i] = data[i]*(1-lrate()) + vec[i]*lrate();
@@ -43,7 +43,7 @@ class Centroid {
         for (int i=0; i<size; i++) {
             tot += data[i];
         }
-        System.out.println("\ttot post: "+ tot);
+        // System.out.println("\ttot post: "+ tot);
     }
 
     public double[] getData() {
@@ -57,7 +57,7 @@ class Centroid {
     public double similarity(double[] vec) {
         checkSize(vec);
         // return simpleDotProduct(vec);
-        return squareDistance(vec);
+        return squareError(vec);
     }
 
     // SIMILARITY MEASURES
@@ -70,7 +70,7 @@ class Centroid {
         return ret;
     }
 
-    public double squareDistance(double[] vec) {
+    public double squareError(double[] vec) {
         double ret = 0;
         for (int i=0; i<size; i++) {
             ret += Math.pow(data[i] - vec[i], 2);

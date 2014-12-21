@@ -39,8 +39,8 @@ public class BMPLoader {
     public double[] readBMP(File file){
         // read image
         BufferedImage img;
-        try { 
-            img = ImageIO.read(file); 
+        try {
+            img = ImageIO.read(file);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -72,15 +72,21 @@ public class BMPLoader {
         image.getRaster().setDataElements(0,0,width,height,toByte(pixels));
 
         // write file
-        try { 
+        try {
             ImageIO.write(image, "BMP", new File(path));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
+    // The saving part is getting wild, refactor it
+
     public void saveAll(double[][] imgs, String basename) {
         writeBMPs(imgs, outputDir+"/"+basename);
+    }
+
+    public void save(double[] img, String basename) {
+        writeBMP(img, outputDir+"/"+basename+".bmp");
     }
 
     public void writeBMPs(double[][] imgs, String basename) {
@@ -156,7 +162,7 @@ public class BMPLoader {
         for (int i=0; i<image.length; i++) {
             ret[i] = ((image[i] - min) / (max - min));
         }
-        
+
         return ret;
     }
 }
