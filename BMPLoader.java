@@ -99,16 +99,25 @@ public class BMPLoader {
             });
     }
 
+    public double[][] readAll(int limit) {
+        return readAllBMPInDir(inputDir, limit);
+    }
+
     public double[][] readAll() {
         return readAllBMPInDir(inputDir);
     }
 
     public double[][] readAllBMPInDir(String path) {
+        return readAllBMPInDir(path, 0);
+    }
+
+    public double[][] readAllBMPInDir(String path, int limit) {
         File[] files = listBMPInDir(path);
-        double[][] ret = new double[files.length][];
+        if (limit<=0) { limit = files.length; }
+        double[][] ret = new double[limit][];
         System.out.println("Loading all BMP files in path `"+path+"`");
         int i;
-        for (i=0; i<files.length; i++) {
+        for (i=0; i<limit; i++) {
             System.out.print(".");
             ret[i] = readBMP(files[i]);
         }
