@@ -3,6 +3,9 @@ class Centroid {
     double[] data;
     int size, ntrains;
 
+    int MAXTRAINS=100;
+    double MINLRATE=1d/MAXTRAINS;
+
     public Centroid(int size) {
         this.size = size;
         this.ntrains = 1;
@@ -20,30 +23,21 @@ class Centroid {
 
     // Per-centroid learning rate
     public double lrate() {
-        // linearly decaying
-        return 1d/ntrains;
+        if (ntrains<MAXTRAINS) {
+            // linearly decaying
+            return 1d/ntrains;
+        } else {
+            // lower bound
+            return MINLRATE;
+        }
     }
 
     public void train(double[] vec) {
         checkSize(vec);
-
-        // System.out.println("\tLR: "+lrate());
-        double tot = 0;
         for (int i=0; i<size; i++) {
-            tot += data[i];
-        }
-        // System.out.println("\ttot pre:  "+ tot);
-
-        for (int i=0; i<size; i++) {
-            data[i] = data[i]*(1-lrate()) + vec[i]*lrate();
+            data[i] = (1-lrate())*data[i] + lrate()*vec[i];
         }
         ntrains++;
-
-        tot = 0;
-        for (int i=0; i<size; i++) {
-            tot += data[i];
-        }
-        // System.out.println("\ttot post: "+ tot);
     }
 
     public double[] getData() {
