@@ -81,6 +81,15 @@ public class BMPLoader {
 
     // The saving part is getting wild, refactor it
 
+    public void saveAll(double[][] imgs, String basename, boolean rescale) {
+        if (rescale) {
+            for (int i=0; i<imgs.length; i++) {
+                imgs[i] = rescale(imgs[i]);
+            }
+        }
+        saveAll(imgs, basename);
+    }
+
     public void saveAll(double[][] imgs, String basename) {
         writeBMPs(imgs, outputDir+"/"+basename);
     }
