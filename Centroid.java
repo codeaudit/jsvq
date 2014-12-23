@@ -10,6 +10,8 @@ class Centroid {
         this.size = size;
         this.ntrains = 1;
         this.data = new double[size];
+        // TESTING WHITE CENTROIDS - MATCH ALL!!
+        // for (int i = 0; i < size; i++) { data[i] = 1d; }
         for (int i = 0; i < size; i++) { data[i] = Math.random(); }
     }
 
@@ -50,8 +52,8 @@ class Centroid {
 
     public double similarity(double[] vec) {
         checkSize(vec);
-        // return simpleDotProduct(vec);
-        return squareError(vec);
+        return simpleDotProduct(vec);
+        // return squareError(vec);
     }
 
     // SIMILARITY MEASURES
@@ -61,7 +63,7 @@ class Centroid {
         for (int i=0; i<size; i++) {
             ret += data[i] * vec[i];
         }
-        return ret;
+        return ret/vec.length;
     }
 
     public double squareError(double[] vec) {
@@ -69,7 +71,7 @@ class Centroid {
         for (int i=0; i<size; i++) {
             ret += Math.pow(data[i] - vec[i], 2);
         }
-        return ret;
+        return ret/vec.length;
     }
 
 }
