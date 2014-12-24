@@ -35,12 +35,12 @@ public class SVQ {
     public double[] similarities(double[] vec) {
         checkLengths(vec, imgsize);
         double[] ret = new double[ncentr];
-        System.out.print("Simils: ");
+        // System.out.print("Simils: ");
         for (int i=0; i<ncentr; i++) {
             ret[i] = centroids[i].similarity(vec);
-            System.out.print(ret[i]+" ");
+            // System.out.print(ret[i]+" ");
         }
-        System.out.println();
+        // System.out.println();
         return ret;
     }
 
@@ -60,7 +60,7 @@ public class SVQ {
         Arrays.fill(ret, 0d);
 
         double[] mwi = maxWithIndex(similarities(vec));
-        System.out.println("Max: "+mwi[0]+" - idx: "+mwi[1]);
+        // System.out.println("Max: "+mwi[0]+" - idx: "+mwi[1]);
         // here mwi[0] holds the max, if you need it
         ret[(int)mwi[1]] = 1;
         return ret;
@@ -83,12 +83,22 @@ public class SVQ {
         return ret; //(new BMPLoader("","")).rescale(ret);
     }
 
-    public double reconstructionError(double[] orig, double[] reconstruction) {
-        checkLengths(orig, reconstruction);
-        double ret = 0;
-        // square error
+    public double[] reconstructionError(double[] orig, double[] reconstr) {
+        checkLengths(orig, reconstr);
+        double[] ret = new double[orig.length];
+        // simple difference - possibly use squared error instead
         for (int i=0; i<orig.length; i++) {
-            ret += Math.pow(orig[i]-reconstruction[i], 2);
+            ret[i] = Math.abs(orig[i]-reconstr[i]);
+        }
+        return ret;
+    }
+
+    public double totalReconstructionError(double[] orig, double[] reconstr) {
+        double[] tmp = reconstructionError(orig, reconstr);
+        double ret = 0;
+        // just total it - what a godforsaken language Java is...
+        for (int i=0; i<tmp.length; i++) {
+            ret += tmp[i];
         }
         return ret;
     }
@@ -141,18 +151,26 @@ public class SVQ {
         svq.train(images);
         bmp.saveAll(svq.getData(), "centr");
 
-        // reconstruct
-        double[][] reconstructions = new double[NVALID][];
-        double[] img, code;
-        for (int i=0; i<NVALID; i++) {
-            // ten pseudorandom images, from training range
-            img = images[10*i];
-            bmp.save(img, "image_"+i);
-            code = svq.code(img);
-            reconstructions[i] = svq.reconstruct(code);
-        }
-        bmp.saveAll(reconstructions, "reconstr");
+        double[][] selected = new double[NVALID][];
+        double[][] codes    = new double[NVALID][];
+        double[][] reconstr = new double[NVALID][];
+        double[][] errors   = new double[NVALID][];
 
+        // NVALID "pseudorandom" images, from training range
+        for (int i=0; i<NVALID; i++) {
+            // select
+            selected[i] = images[10*i];
+            // compress
+            codes[i] = svq.code(selected[i]);
+            // reconstruct
+            reconstr[i] = svq.reconstruct(codes[i]);
+            // reconstruction error
+            errors[i] = svq.reconstructionError(selected[i], reconstr[i]);
+        }
+        bmp.saveAll(selected, "image");
+        bmp.saveAll(reconstr, "reconstr");
+        bmp.saveAll(errors, "x_error");
+        // print codes?
 
         System.out.println("\nDone!");
     }
