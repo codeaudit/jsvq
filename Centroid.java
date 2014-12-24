@@ -3,10 +3,15 @@ class Centroid {
     double[] data;
     int size, ntrains;
 
+    int MAXTRAINS=100;
+    double MINLRATE=1d/MAXTRAINS;
+
     public Centroid(int size) {
         this.size = size;
         this.ntrains = 1;
         this.data = new double[size];
+        // TESTING WHITE CENTROIDS - MATCH ALL!!
+        // for (int i = 0; i < size; i++) { data[i] = 1d; }
         for (int i = 0; i < size; i++) { data[i] = Math.random(); }
     }
 
@@ -20,30 +25,21 @@ class Centroid {
 
     // Per-centroid learning rate
     public double lrate() {
-        // linearly decaying
-        return 1d/ntrains;
+        if (ntrains<MAXTRAINS) {
+            // linearly decaying
+            return 1d/ntrains;
+        } else {
+            // lower bound
+            return MINLRATE;
+        }
     }
 
     public void train(double[] vec) {
         checkSize(vec);
-
-        System.out.println("\tLR: "+lrate());
-        double tot = 0;
         for (int i=0; i<size; i++) {
-            tot += data[i];
-        }
-        System.out.println("\ttot pre:  "+ tot);
-
-        for (int i=0; i<size; i++) {
-            data[i] = data[i]*(1-lrate()) + vec[i]*lrate();
+            data[i] = (1-lrate())*data[i] + lrate()*vec[i];
         }
         ntrains++;
-
-        tot = 0;
-        for (int i=0; i<size; i++) {
-            tot += data[i];
-        }
-        System.out.println("\ttot post: "+ tot);
     }
 
     public double[] getData() {
@@ -56,26 +52,39 @@ class Centroid {
 
     public double similarity(double[] vec) {
         checkSize(vec);
+        return shiftedDotProduct(vec);
         // return simpleDotProduct(vec);
-        return squareDistance(vec);
+        // return squareError(vec);
     }
 
     // SIMILARITY MEASURES
 
     public double simpleDotProduct(double[] vec) {
+        // Only measures corresponding lighting
         double ret = 0;
         for (int i=0; i<size; i++) {
             ret += data[i] * vec[i];
         }
-        return ret;
+        return ret/vec.length;
     }
 
-    public double squareDistance(double[] vec) {
+    public double shiftedDotProduct(double[] vec) {
+        // Gives same importance to luminosity and darkness
+        double ret = 0;
+        for (int i=0; i<size; i++) {
+            // Shift both in range [-0.5,0.5]
+            ret += (data[i]-0.5) * (vec[i]-0.5);
+        }
+        return ret/vec.length;
+    }
+
+    public double squareError(double[] vec) {
+        // Evergreen classic
         double ret = 0;
         for (int i=0; i<size; i++) {
             ret += Math.pow(data[i] - vec[i], 2);
         }
-        return ret;
+        return ret/vec.length;
     }
 
 }
