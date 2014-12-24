@@ -52,13 +52,15 @@ class Centroid {
 
     public double similarity(double[] vec) {
         checkSize(vec);
-        return simpleDotProduct(vec);
+        return shiftedDotProduct(vec);
+        // return simpleDotProduct(vec);
         // return squareError(vec);
     }
 
     // SIMILARITY MEASURES
 
     public double simpleDotProduct(double[] vec) {
+        // Only measures corresponding lighting
         double ret = 0;
         for (int i=0; i<size; i++) {
             ret += data[i] * vec[i];
@@ -66,7 +68,18 @@ class Centroid {
         return ret/vec.length;
     }
 
+    public double shiftedDotProduct(double[] vec) {
+        // Gives same importance to luminosity and darkness
+        double ret = 0;
+        for (int i=0; i<size; i++) {
+            // Shift both in range [-0.5,0.5]
+            ret += (data[i]-0.5) * (vec[i]-0.5);
+        }
+        return ret/vec.length;
+    }
+
     public double squareError(double[] vec) {
+        // Evergreen classic
         double ret = 0;
         for (int i=0; i<size; i++) {
             ret += Math.pow(data[i] - vec[i], 2);
