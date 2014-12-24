@@ -36,6 +36,9 @@ public class BMPLoader {
         return readBMP(new File(path));
     }
 
+    // extract height/width initialization
+    // extract ensureGrayscale
+    // extract BufferedImage.TYPE_BYTE_GRAY
     public double[] readBMP(File file){
         // read image
         BufferedImage img;
