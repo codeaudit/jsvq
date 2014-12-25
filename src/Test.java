@@ -42,7 +42,21 @@ public class Test {
         bmp.saveAll(selected, "image");
         bmp.saveAll(reconstr, "reconstr");
         bmp.saveAll(errors, "x_error");
-        // print codes?
+
+        // total errors
+        int tot, avg, ttot=0;
+        System.out.print("Avg errors: ");
+        for (int i=0; i<errors.length; i++) {
+            tot=0;
+            for (int j=0; j<errors[i].length; j++) {
+                tot += errors[i][j];
+            }
+            avg = tot/errors[i].length;
+            ttot += avg;
+            System.out.print(avg+" ");
+        }
+        System.out.print("/ "+ttot);
+        System.out.println();
 
         System.out.println("\nDone!");
     }
