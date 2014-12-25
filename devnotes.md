@@ -4,6 +4,7 @@
 - Make centroids moving averages of its training?
 - Threshold to add new centroids?
 - Save and load centroids
+- Refactor BMPLoader.java, it's getting messy
 
 ## Similarity measures
 - Dot product between positive images (in [0,1]) matches only whiteness
