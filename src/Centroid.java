@@ -76,8 +76,8 @@ class Centroid {
         // Gives same importance to luminosity and darkness
         double ret = 0;
         for (int i=0; i<size; i++) {
-            // Shift both in range [-0.5,0.5]
-            ret += (data[i]-0.5) * (vec[i]-0.5);
+            // Shift both in range [-0.5,0.5] (or [-128,127] for shorts)
+            ret += (data[i]-128) * (vec[i]-128);
         }
         return ret/vec.length;
     }
