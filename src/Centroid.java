@@ -63,7 +63,7 @@ class Centroid {
         // return shiftedDotProduct(vec); // 27 48 30 50 / 155
         // return squareError(vec);       // 27 34 35 40 / 136
         // return simpleHistogram(vec);   // 27 24 30 43 / 124
-        return multiresHistogram(vec);    // 21 47 30 49 / 147
+        return multiresHistogram(vec);    // 26 27 30 36 / 119
     }
 
     // SIMILARITY MEASURES
@@ -141,35 +141,35 @@ class Centroid {
         int[][] hists = getHists(data, vec);
         double dottotal = 0, weight;
 
-        int[][] tot = new int[2][];
-        tot[0] = new int[INTENSITIES];
-        tot[1] = new int[INTENSITIES];
+        int[][] sums = new int[2][];
+        sums[0] = new int[INTENSITIES];
+        sums[1] = new int[INTENSITIES];
 
-        // Change resolution: start by all pixels independently,
+        // Change nchunks: start by all pixels independently,
         // then sum two, then sum 4...
-        for (int resolution=INTENSITIES; resolution>=1; resolution/=2) {
-            Arrays.fill(tot[0], (short)0);
-            Arrays.fill(tot[1], (short)0);
+        for (int nchunks=INTENSITIES; nchunks>=1; nchunks/=2) {
+            Arrays.fill(sums[0], (short)0);
+            Arrays.fill(sums[1], (short)0);
 
             int i=0;
-            // Now compute sums per each part in the resolution
-            for (int border=0; border<INTENSITIES; border+=resolution) {
+            // Now compute sums per each part in the nchunks
+            for (int border=0; border<INTENSITIES; border+=INTENSITIES/nchunks) {
                 // walk from where last parted ended until next border
                 for (; i<border; i++) {
                     // the position where to write it does not matter, as long
                     // as we don't get out of the array and the position is the
                     // same in both arrays, the dot product will be fine
-                    tot[0][border] += hists[0][i];
-                    tot[1][border] += hists[1][i];
+                    sums[0][border] += hists[0][i];
+                    sums[1][border] += hists[1][i];
                 }
             }
 
-            // Each resolution calculation is weighted by its level of detail
-            weight = ((double)resolution/INTENSITIES);
+            // Each nchunks calculation is weighted by its level of detail
+            weight = ((double)nchunks/INTENSITIES);
             // then compare them
             // TODO: try comparing with difference and square error
             // TODO: compute avg on moving window instead of blind sums
-            dottotal += weight * dot(tot[0],tot[1]);
+            dottotal += weight * dot(sums[0],sums[1]);
         }
 
         return dottotal;
