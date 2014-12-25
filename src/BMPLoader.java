@@ -16,30 +16,30 @@ public class BMPLoader {
         this.outputDir = out;
     }
 
-    public double[] toDouble(byte[] vec) {
-        double[] ret = new double[vec.length];
+    public short[] toShort(byte[] vec) {
+        short[] ret = new short[vec.length];
         for (int i=0; i<vec.length; i++) {
-            ret[i] = (double)(vec[i] & 0xFF) / 255;
+            ret[i] = (short)(vec[i] & 0xFF);
         }
         return ret;
     }
 
-    public byte[] toByte(double[] vec) {
+    public byte[] toByte(short[] vec) {
         byte[] ret = new byte[vec.length];
         for (int i=0; i<vec.length; i++) {
-            ret[i] = (byte)(vec[i] * 255);
+            ret[i] = (byte)vec[i];
         }
         return ret;
     }
 
-    public double[] readBMP(String path){
+    public short[] readBMP(String path){
         return readBMP(new File(path));
     }
 
     // extract height/width initialization
     // extract ensureGrayscale
     // extract BufferedImage.TYPE_BYTE_GRAY
-    public double[] readBMP(File file){
+    public short[] readBMP(File file){
         // read image
         BufferedImage img;
         try {
@@ -63,10 +63,10 @@ public class BMPLoader {
         // return array of pixels
         byte[] pixels = new byte[width*height];
         img.getRaster().getDataElements(0,0,width,height,pixels);
-        return toDouble(pixels);
+        return toShort(pixels);
     }
 
-    public void writeBMP(double[] pixels, String path) {
+    public void writeBMP(short[] pixels, String path) {
         // make image
         BufferedImage image = new BufferedImage(
             height, width,BufferedImage.TYPE_BYTE_GRAY);
@@ -84,7 +84,7 @@ public class BMPLoader {
 
     // The saving part is getting wild, refactor it
 
-    public void saveAll(double[][] imgs, String basename, boolean rescale) {
+    public void saveAll(short[][] imgs, String basename, boolean rescale) {
         if (rescale) {
             for (int i=0; i<imgs.length; i++) {
                 imgs[i] = rescale(imgs[i]);
@@ -93,15 +93,15 @@ public class BMPLoader {
         saveAll(imgs, basename);
     }
 
-    public void saveAll(double[][] imgs, String basename) {
+    public void saveAll(short[][] imgs, String basename) {
         writeBMPs(imgs, outputDir+"/"+basename);
     }
 
-    public void save(double[] img, String basename) {
+    public void save(short[] img, String basename) {
         writeBMP(img, outputDir+"/"+basename+".bmp");
     }
 
-    public void writeBMPs(double[][] imgs, String basename) {
+    public void writeBMPs(short[][] imgs, String basename) {
         for (int i=0; i<imgs.length; i++) {
             writeBMP(imgs[i], basename+"_"+(i+1)+".bmp");
         }
@@ -120,22 +120,22 @@ public class BMPLoader {
             });
     }
 
-    public double[][] readAll(int limit) {
+    public short[][] readAll(int limit) {
         return readAllBMPInDir(inputDir, limit);
     }
 
-    public double[][] readAll() {
+    public short[][] readAll() {
         return readAllBMPInDir(inputDir);
     }
 
-    public double[][] readAllBMPInDir(String path) {
+    public short[][] readAllBMPInDir(String path) {
         return readAllBMPInDir(path, 0);
     }
 
-    public double[][] readAllBMPInDir(String path, int limit) {
+    public short[][] readAllBMPInDir(String path, int limit) {
         File[] files = listBMPInDir(path);
         if (limit<=0) { limit = files.length; }
-        double[][] ret = new double[limit][];
+        short[][] ret = new short[limit][];
         System.out.println("Loading all BMP files in path `"+path+"`");
         int i;
         for (i=0; i<limit; i++) {
@@ -147,9 +147,9 @@ public class BMPLoader {
         return ret;
     }
 
-    public double[] average(double[][] images) {
+    public short[] average(short[][] images) {
         int imglen = images[0].length;
-        double[] avg = new double[imglen];
+        short[] avg = new short[imglen];
         for (int pixidx=0; pixidx<imglen; pixidx++) {
             avg[pixidx] = 0;
             for (int imgidx=0; imgidx<images.length; imgidx++) {
@@ -162,17 +162,17 @@ public class BMPLoader {
     }
 
     // Rescales an array of values to range [0,1]
-    public double[] rescale(double[] image) {
-        double min=image[0],max=image[0];
+    public short[] rescale(short[] image) {
+        short min=image[0],max=image[0];
         // find min/max
         for (int i=0; i<image.length; i++) {
             if (image[i]<min) { min=image[i]; }
             if (image[i]>max) { max=image[i]; }
         }
         // rescale
-        double[] ret = new double[image.length];
+        short[] ret = new short[image.length];
         for (int i=0; i<image.length; i++) {
-            ret[i] = ((image[i] - min) / (max - min));
+            ret[i] = (short)((image[i] - min) / (max - min));
         }
 
         return ret;

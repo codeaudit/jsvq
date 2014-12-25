@@ -14,7 +14,7 @@ public class Test {
 
         // load images
         BMPLoader bmp = new BMPLoader(indir, outdir);
-        double[][] images = bmp.readAll(NTRAIN);
+        short[][] images = bmp.readAll(NTRAIN);
         System.out.println("Elaborating images: " +
             images.length + "x" + bmp.height + "x" + bmp.width);
 
@@ -23,10 +23,10 @@ public class Test {
         svq.train(images);
         bmp.saveAll(svq.getData(), "centr");
 
-        double[][] selected = new double[NVALID][];
-        double[][] codes    = new double[NVALID][];
-        double[][] reconstr = new double[NVALID][];
-        double[][] errors   = new double[NVALID][];
+        short[][] selected = new short[NVALID][];
+        short[][] codes    = new short[NVALID][];
+        short[][] reconstr = new short[NVALID][];
+        short[][] errors   = new short[NVALID][];
 
         // NVALID "pseudorandom" images, from training range
         for (int i=0; i<NVALID; i++) {

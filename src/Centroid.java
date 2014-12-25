@@ -1,6 +1,7 @@
+import java.util.Random;
 
 class Centroid {
-    double[] data;
+    short[] data;
     int size, ntrains;
 
     int MAXTRAINS=100;
@@ -9,14 +10,17 @@ class Centroid {
     public Centroid(int size) {
         this.size = size;
         this.ntrains = 1;
-        this.data = new double[size];
-        // TESTING WHITE CENTROIDS - MATCH ALL!!
-        // for (int i = 0; i < size; i++) { data[i] = 1d; }
-        for (int i = 0; i < size; i++) { data[i] = Math.random(); }
+        this.data = new short[size];
+        Random random = new Random();
+        for (int i = 0; i < size; i++) {
+            // TESTING WHITE CENTROIDS - DOT MATCH ALL!!
+            // data[i] = (short)255;
+            data[i] = (short) random.nextInt(255+1);
+        }
     }
 
     // Quick error check for vector size consistency
-    public void checkSize(double[] vec) {
+    public void checkSize(short[] vec) {
         if (vec.length != size) {
             throw new RuntimeException(
                 "Input vector length does not match centroid size.");
@@ -34,15 +38,15 @@ class Centroid {
         }
     }
 
-    public void train(double[] vec) {
+    public void train(short[] vec) {
         checkSize(vec);
         for (int i=0; i<size; i++) {
-            data[i] = (1-lrate())*data[i] + lrate()*vec[i];
+            data[i] = (short) ((1-lrate())*data[i] + lrate()*vec[i]);
         }
         ntrains++;
     }
 
-    public double[] getData() {
+    public short[] getData() {
         return data;
     }
 
@@ -50,7 +54,7 @@ class Centroid {
         return similarity(c.getData());
     }
 
-    public double similarity(double[] vec) {
+    public double similarity(short[] vec) {
         checkSize(vec);
         return shiftedDotProduct(vec);
         // return simpleDotProduct(vec);
@@ -59,7 +63,7 @@ class Centroid {
 
     // SIMILARITY MEASURES
 
-    public double simpleDotProduct(double[] vec) {
+    public double simpleDotProduct(short[] vec) {
         // Only measures corresponding lighting
         double ret = 0;
         for (int i=0; i<size; i++) {
@@ -68,7 +72,7 @@ class Centroid {
         return ret/vec.length;
     }
 
-    public double shiftedDotProduct(double[] vec) {
+    public double shiftedDotProduct(short[] vec) {
         // Gives same importance to luminosity and darkness
         double ret = 0;
         for (int i=0; i<size; i++) {
@@ -78,7 +82,7 @@ class Centroid {
         return ret/vec.length;
     }
 
-    public double squareError(double[] vec) {
+    public double squareError(short[] vec) {
         // Evergreen classic
         double ret = 0;
         for (int i=0; i<size; i++) {
