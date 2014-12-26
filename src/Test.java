@@ -14,6 +14,7 @@ public class Test {
 
         // load images
         BMPLoader bmp = new BMPLoader(indir, outdir);
+        // short[][] images = bmp.readAll();
         short[][] images = bmp.readAll(NTRAIN);
         System.out.println("Elaborating images: " +
             images.length + "x" + bmp.height + "x" + bmp.width);

@@ -94,6 +94,7 @@ public class BMPLoader {
     }
 
     public void saveAll(short[][] imgs, String basename) {
+        System.out.println("Saving '"+basename+"'");
         writeBMPs(imgs, outputDir+"/"+basename);
     }
 
