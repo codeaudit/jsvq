@@ -29,6 +29,19 @@ class Centroid {
         }
     }
 
+    // Trains the centroid to be more similar to the input vector
+    public void train(short[] vec, double lrate) {
+        checkSize(vec);
+        for (int i=0; i<size; i++) {
+            data[i] = (short) (((1-lrate)*data[i]) + (lrate*vec[i]));
+        }
+        ntrains++;
+    }
+
+    public void train(short[] vec) {
+        train(vec, lrate());
+    }
+
     // Per-centroid learning rate
     public double lrate() {
         if (ntrains<MAXTRAINS) {
@@ -40,12 +53,10 @@ class Centroid {
         }
     }
 
-    public void train(short[] vec) {
-        checkSize(vec);
-        for (int i=0; i<size; i++) {
-            data[i] = (short) ((1-lrate())*data[i] + lrate()*vec[i]);
-        }
-        ntrains++;
+    // Trains the centroid to be a bit less similar to the input vector
+    public void untrain(short[] vec) {
+        // we want the changes to be negative and minimal
+        train(vec, -lrate()/10);
     }
 
     public short[] getData() {
