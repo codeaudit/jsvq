@@ -100,26 +100,38 @@ public class SVQ {
     }
 
     // train on single image
-    public void train(short[] img) {
+    public void train(short[] img, boolean untrain) {
         double[] closestWI = maxWithIndex(similarities(img));
         // here you get the max in closestWI[0] if you need it
         int closestIdx = (int)closestWI[1];
-        for (int i=0; i<ncentr; i++) {
-            if (i==closestIdx) {
-                // train the closest centroid
-                centroids[i].train(img);
-            } else {
-                // untrain the others
-                centroids[i].untrain(img);
+        if (untrain) {
+            for (int i=0; i<ncentr; i++) {
+                if (i==closestIdx) {
+                    // train the closest centroid
+                    centroids[i].train(img);
+                } else {
+                    // untrain the others
+                    centroids[i].untrain(img);
+                }
             }
+        } else {
+            centroids[closestIdx].train(img);
         }
     }
 
+    public void train(short[] img) {
+        train(img, false);
+    }
+
     // train on set of images
-    public void train(short[][] imgs) {
+    public void train(short[][] imgs, boolean untrain) {
         for (int i=0; i<imgs.length; i++) {
-            train(imgs[i]);
+            train(imgs[i], untrain);
         }
+    }
+
+    public void train(short[][] imgs) {
+        train(imgs, false);
     }
 
     public short[][] getData() {

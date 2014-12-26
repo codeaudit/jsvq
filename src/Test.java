@@ -13,6 +13,8 @@ public class Test {
         int NVALID  = 4;
         // number of trainings over the training set
         int NTRAINS = 1;
+        // whether to activate negative training
+        boolean UNTRAIN = false;
 
         // load images
         BMPLoader bmp = new BMPLoader(indir, outdir);
@@ -25,7 +27,7 @@ public class Test {
         SVQ svq = new SVQ(NCENTR, images[0].length);
         for (int i=0; i<NTRAINS; i++) {
             System.out.println("Training "+(i+1));
-            svq.train(images);
+            svq.train(images, UNTRAIN);
         }
         bmp.saveAll(svq.getData(), "centr");
 
