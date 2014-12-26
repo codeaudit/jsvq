@@ -11,6 +11,8 @@ public class Test {
         int NTRAIN  = 100; // (bmp.listBMP().length/4)
         // size of validation set
         int NVALID  = 4;
+        // number of trainings over the training set
+        int NTRAINS = 1;
 
         // load images
         BMPLoader bmp = new BMPLoader(indir, outdir);
@@ -21,7 +23,10 @@ public class Test {
 
         // train
         SVQ svq = new SVQ(NCENTR, images[0].length);
-        svq.train(images);
+        for (int i=0; i<NTRAINS; i++) {
+            System.out.println("Training "+(i+1));
+            svq.train(images);
+        }
         bmp.saveAll(svq.getData(), "centr");
 
         short[][] selected = new short[NVALID][];
