@@ -34,6 +34,9 @@ class Centroid {
         checkSize(vec);
         for (int i=0; i<size; i++) {
             data[i] = (short) ((lrates[0]*data[i]) + (lrates[1]*vec[i]));
+            // normalize
+            if (data[i] < 0) { data[i] = 0; }
+            if (data[i] > INTENSITIES-1) { data[i] = (short)(INTENSITIES-1); }
         }
         ntrains++;
     }
@@ -43,25 +46,34 @@ class Centroid {
     }
 
     // Per-centroid learning rates - [0] for data, [1] for vec
-    public double[] lrates() {
+    public double[] lrates(double factor) {
         double[] ret = new double[2];
         if (ntrains<MAXTRAINS) {
             // linearly decaying
-            ret[1] = 1d/ntrains;
+            ret[1] = factor/ntrains;
         } else {
             // lower bound
-            ret[1] = MINLRATE;
+            ret[1] = factor*MINLRATE;
         }
         ret[0] = 1-ret[1];
         return ret;
     }
 
+    public double[] lrates() {
+        return lrates(1d); // default: don't scale
+    }
+
     // Trains the centroid to be a bit less similar to the input vector
     public void untrain(short[] vec) {
-        double[] lrs = lrates();
-        // we want the changes to be negative and minimal
-        lrs[1] = -lrs[1]/10;
+        // we want the changes to be minimal
+        double[] lrs = lrates(1d/100);
+        // adjust data[] learning rate
+        lrs[0] = 1-lrs[1];
+        // we want the changes to be negative
+        lrs[1] = -lrs[1];
+
         train(vec, lrs);
+        ntrains--; // do not count untrains for the centroid
     }
 
     public short[] getData() {
