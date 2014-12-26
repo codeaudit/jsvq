@@ -104,8 +104,15 @@ public class SVQ {
         double[] closestWI = maxWithIndex(similarities(img));
         // here you get the max in closestWI[0] if you need it
         int closestIdx = (int)closestWI[1];
-        // train the closest centroid
-        centroids[closestIdx].train(img);
+        for (int i=0; i<ncentr; i++) {
+            if (i==closestIdx) {
+                // train the closest centroid
+                centroids[i].train(img);
+            } else {
+                // untrain the others
+                centroids[i].untrain(img);
+            }
+        }
     }
 
     // train on set of images
