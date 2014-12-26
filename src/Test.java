@@ -14,7 +14,7 @@ public class Test {
         // number of trainings over the training set
         int NTRAINS = 1;
         // whether to activate negative training
-        boolean UNTRAIN = false;
+        String UNTRAIN = "no";
 
         // load images
         BMPLoader bmp = new BMPLoader(indir, outdir);

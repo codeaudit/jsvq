@@ -99,39 +99,46 @@ public class SVQ {
         return ret;
     }
 
+    public void untrainAllBut(int idx, short[] img) {
+        for (int i=0; i<ncentr; i++) {
+            if (i!=idx) {
+                centroids[i].untrain(img);
+            }
+        }
+    }
+
+    public enum TrainOpts { NO, ALL }
+
     // train on single image
-    public void train(short[] img, boolean untrain) {
+    public void train(short[] img, String untrain) {
         double[] closestWI = maxWithIndex(similarities(img));
         // here you get the max in closestWI[0] if you need it
         int closestIdx = (int)closestWI[1];
-        if (untrain) {
-            for (int i=0; i<ncentr; i++) {
-                if (i==closestIdx) {
-                    // train the closest centroid
-                    centroids[i].train(img);
-                } else {
-                    // untrain the others
-                    centroids[i].untrain(img);
-                }
-            }
-        } else {
-            centroids[closestIdx].train(img);
+        TrainOpts opt = TrainOpts.valueOf(untrain.toUpperCase());
+        switch (opt) {
+            case NO:
+                centroids[closestIdx].train(img);
+                break;
+            case ALL:
+                untrainAllBut(closestIdx, img);
+                centroids[closestIdx].train(img);
+                break;
         }
     }
 
     public void train(short[] img) {
-        train(img, false);
+        train(img, "no");
     }
 
     // train on set of images
-    public void train(short[][] imgs, boolean untrain) {
+    public void train(short[][] imgs, String untrain) {
         for (int i=0; i<imgs.length; i++) {
             train(imgs[i], untrain);
         }
     }
 
     public void train(short[][] imgs) {
-        train(imgs, false);
+        train(imgs, "no");
     }
 
     public short[][] getData() {
