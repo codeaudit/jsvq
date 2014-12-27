@@ -14,13 +14,13 @@ public class Test {
         // number of trainings over the training set
         int NTRAINS = 1;
         // whether to activate negative training: { "no", "all", "least" }
-        String UNTRAIN = "least";
+        String UNTRAIN = "no";
         // comparison method to use inside centroids: { "dot", "hik" }
-        String COMPMETHOD = "dot";
+        String COMPMETHOD = "hik";
         // similarity method to use inside centroids:
         // { "simpleDotProduct", "shiftedDotProduct", "squareError",
         //   "simpleHistogram", "pyramidMatching", "spacialPyramidMatching" }
-        String SIMILMETHOD = "pyramidMatching";
+        String SIMILMETHOD = "spacialPyramidMatching";
 
         // load images
         BMPLoader bmp = new BMPLoader(indir, outdir);

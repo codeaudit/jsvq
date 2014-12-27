@@ -21,11 +21,14 @@ I'm reporting here the total average reconstruction error on 4 images, always th
     - no untrain, dot:     126
     - untraining on least: 111
     - hik + untrain least: 120
+    - hik, no untrain:     124
 - pyramidMatching:
     - no untrain, dot:     159
     - untraining on least: 94
     - hik + untrain least: 111
+    - hik, no untrain:     115
 - spacialPyramidMatching:
-    - no untrain, dot:     188
-    - untraining on least: 393
-    - hik + untrain least: 393
+    - no untrain, dot:     121
+    - untraining on least: 119
+    - hik + untrain least: 118
+    - hik, no untrain:     115

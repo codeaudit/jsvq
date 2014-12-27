@@ -30,10 +30,15 @@ class Centroid {
         randomInitData();
     }
 
+    // TODO: it seems to perform better if the random initialization is drawn
+    // from a distribution with same mean and variance as the images
+    // TODO: at first SVQ training, first reset all randomly initialized
+    // centroids with data from a distribution similar to imgs in first batch
     public void randomInitData() {
+        int k = 0; // this allows to bias the random up
         Random random = new Random();
         for (int i = 0; i < size; i++) {
-            data[i] = (short) random.nextInt(INTENSITIES);
+            data[i] = (short) (k + random.nextInt(INTENSITIES-k));
         }
     }
 
@@ -330,7 +335,7 @@ class Centroid {
         // Same of course should go for the centroid (they lie in same space)
         int linesize = (int) Math.sqrt(m.length);
         // Hypothesis: the size of m's matrix is a power of 2, with exp <= MAXRES
-        int MAXRES = log2(linesize);
+        int MAXRES = 3;//log2(linesize); // TOO slow!
         // Support vars
         int blocksize, blocksPerLine, nblocks, row, col;
         int[] tmphist;
