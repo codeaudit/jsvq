@@ -272,10 +272,11 @@ class Centroid {
 
     // Spacial histogram methods
 
-    // Returns the histogram for matrix of size linesize, block of size blocksize, block-row row, block-column col
+    // Returns the histogram for matrix of size linesize,
+    // block of size blocksize, row and column in block coordinates
     public int[] getBlockHist(short[] m, int linesize, int blocksize, int row, int col) {
 
-        // Start from top-right corner
+        // Start from top-left corner
         int i = 0;
 
         // First move down to the block row:
@@ -284,30 +285,28 @@ class Centroid {
         // - row is the number of block rows
         i += linesize * blocksize * row;
 
-        // Now move to the right block in the row
+        // Now move to the correct block in the block row
         // - blocksize is the number of columns in a block
         // - col is the number of blocks to skip
         i += blocksize * col;
 
-        // We are now at the top-left corner of the right block
+        // We are now at the top-left corner of the correct block
 
         // We need a border to know when we finish counting for the current line
-        int border;
+        // Place the border at the end of the current line
+        int border = i+blocksize;
         // And a variable where to store the block's histogram
         int[] hist = new int[INTENSITIES];
         Arrays.fill(hist, 0);
 
-        // Cycle over the lines
+        // Cycle over the lines of the block
         for (int nline=0; nline<blocksize; nline++) {
-            // Place the border at the end of the current line
-            border = i+blocksize;
-
             // Now move `i` and build the histogram up to the border
             for (; i<border; i++) {
                 hist[m[i]]++;
             }
 
-            // `i` now points at the first cell of the next block
+            // `i` now points at the first cell of the next block/line
             // we need to bring it down one full line, then back a block size
             i += linesize - blocksize;
             // The border instead just needs to go down one full line
@@ -318,15 +317,11 @@ class Centroid {
         return hist;
     }
 
-    // Returns a total per each block - I'm lazily using the histogram building
-    // since it just uses a bit more memory, refactor if needed
-    public int getBlockTotal(short[] m, int linesize, int blocksize, int row, int col) {
-        int[] hist = getBlockHist(m,linesize,blocksize,row,col);
-        int ret=0;
-        for (int i=0; i<hist.length; i++) {
-            ret+=hist[i];
-        }
-        return ret;
+    // Logarithm base 2 optimized for integers
+    // http://stackoverflow.com/questions/3305059/how-do-you-calculate-log-base-2-in-java-for-integers
+    public static int log2(int n){
+        if(n <= 0) throw new IllegalArgumentException();
+        return 31 - Integer.numberOfLeadingZeros(n);
     }
 
     // Spacial Pyramid Matching algorithm from Lazebnik & al.
@@ -335,10 +330,11 @@ class Centroid {
         // Same of course should go for the centroid (they lie in same space)
         int linesize = (int) Math.sqrt(m.length);
         // Hypothesis: the size of m's matrix is a power of 2, with exp <= MAXRES
-        int MAXRES = 3;
+        int MAXRES = log2(linesize);
         // Support vars
         int blocksize, blocksPerLine, nblocks, row, col;
-        int[][] totals = new int[2][];
+        int[] tmphist;
+        int[][] hists = new int[2][], tmphists = new int[2][];
         double similarity = 0, weight;
 
         // Per each resolution
@@ -349,27 +345,35 @@ class Centroid {
             blocksize = linesize/blocksPerLine;
             // Compute how many blocks total
             nblocks = (int)Math.pow(blocksPerLine,2);
-            // Initialize total arrays
-            totals[0] = new int[nblocks];
-            totals[1] = new int[nblocks];
-            Arrays.fill(totals[0], 0);
-            Arrays.fill(totals[1], 0);
+            // Initialize histogram arrays
+            // For easier computation I just append them all together
+            hists[0] = new int[nblocks*INTENSITIES];
+            hists[1] = new int[nblocks*INTENSITIES];
+            int histfill = 0;
+            Arrays.fill(hists[0], 0);
+            Arrays.fill(hists[1], 0);
 
             // Cycle for each block
             for (int nblock=0; nblock<nblocks; nblock++) {
                 // Calculate row and column
                 row = nblock/blocksPerLine;
                 col = nblock%blocksPerLine;
-                // Calculate totals in block
-                totals[0][nblock] = getBlockTotal(data, linesize, blocksize, row, col);
-                totals[1][nblock] = getBlockTotal(m, linesize, blocksize, row, col);
+                // Calculate histograms
+                tmphists[0] = getBlockHist(data, linesize, blocksize, row, col);
+                tmphists[1] = getBlockHist(m, linesize, blocksize, row, col);
+                // Append them to the hists for this level
+                for (int i=0; i<INTENSITIES; i++) {
+                    hists[0][histfill] = tmphists[0][i];
+                    hists[1][histfill] = tmphists[1][i];
+                    histfill++;
+                }
             }
 
             // Calculate weight for this resolution
-            weight = ((double)MAXRES-res)/MAXRES;
+            weight = ((double)res+1)/MAXRES;
 
             // Spacial Pyramid Match uses Histogram Intersection Kernel here
-            similarity += weight * compare(totals[0], totals[1]);
+            similarity += weight * compare(hists[0], hists[1]);
         }
 
         // Finally...
