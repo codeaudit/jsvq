@@ -278,4 +278,14 @@ class Centroid {
         return hist;
     }
 
+    // Returns a total per each block - I'm lazily using the histogram building
+    // since it just uses a bit more memory, refactor if needed
+    public int getBlockTotal(short[] m, int linesize, int blocksize, int row, int col) {
+        int[] hist = getBlockHist(m,linesize,blocksize,row,col);
+        int ret=0;
+        for (int i=0; i<hist.length; i++) {
+            ret+=hist[i];
+        }
+        return ret;
+    }
 }
