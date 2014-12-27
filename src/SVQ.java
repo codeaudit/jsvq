@@ -55,6 +55,15 @@ public class SVQ {
         return ret;
     }
 
+    public int[] minMaxIndices(double[] vec) {
+        int[] ret = { 0, 0 };
+        for (int i=1; i<vec.length; i++) {
+            if (vec[i]<vec[ret[0]]) { ret[0] = i; }
+            if (vec[i]>vec[ret[1]]) { ret[1] = i; }
+        }
+        return ret;
+    }
+
     public short[] code(short[] vec) {
         short[] ret = new short[ncentr];
         Arrays.fill(ret, (short)0);
@@ -99,20 +108,50 @@ public class SVQ {
         return ret;
     }
 
+    public void untrainAllBut(int idx, short[] img) {
+        for (int i=0; i<ncentr; i++) {
+            if (i!=idx) {
+                centroids[i].untrain(img);
+            }
+        }
+    }
+
+    private enum TrainOpts { NO, ALL, LEAST }
+
     // train on single image
+    public void train(short[] img, String untrain) {
+        int[] minmax = minMaxIndices(similarities(img));
+        int idxLeastSimilar = minmax[0];
+        int idxMostSimilar  = minmax[1];
+
+        TrainOpts opt = TrainOpts.valueOf(untrain.toUpperCase());
+        switch (opt) {
+            case NO:
+                centroids[idxMostSimilar].train(img);
+                break;
+            case ALL:
+                untrainAllBut(idxMostSimilar, img);
+                centroids[idxMostSimilar].train(img);
+                break;
+            case LEAST:
+                centroids[idxMostSimilar].train(img);
+                centroids[idxLeastSimilar].untrain(img);
+        }
+    }
+
     public void train(short[] img) {
-        double[] closestWI = maxWithIndex(similarities(img));
-        // here you get the max in closestWI[0] if you need it
-        int closestIdx = (int)closestWI[1];
-        // train the closest centroid
-        centroids[closestIdx].train(img);
+        train(img, "no");
     }
 
     // train on set of images
-    public void train(short[][] imgs) {
+    public void train(short[][] imgs, String untrain) {
         for (int i=0; i<imgs.length; i++) {
-            train(imgs[i]);
+            train(imgs[i], untrain);
         }
+    }
+
+    public void train(short[][] imgs) {
+        train(imgs, "no");
     }
 
     public short[][] getData() {

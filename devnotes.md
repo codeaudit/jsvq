@@ -1,12 +1,18 @@
 
-## Dev Notes
+# Dev Notes
 
-- Make centroids moving averages of its training?
+## Ideas
+- Make centroids moving averages of their training?
 - Threshold to add new centroids?
 - Save and load centroids
-- Refactor BMPLoader.java, it's getting messy
+- Refactor `BMPLoader.java`, it's getting messy
+- Move similarity measures into their own class
+- I might need a better untrain equation than `(1-eps)*centr - (eps)*(img)`
+- I need more resolution on the centroids, switch them back to `double[]` and CAREFUL with the comparisons to `short[]`
 
-## Similarity measures
+## Notes
+
+### Similarity measures
 - Dot product between positive images (in [0,1]) matches only whiteness
 - A completely white centroid would always be the best match for everything
 - In ECDL12 we used images coded in [-1,1], meaning that both whites and blacks are matched

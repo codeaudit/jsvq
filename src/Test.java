@@ -8,19 +8,27 @@ public class Test {
         // number of centroids
         int NCENTR  = 8;
         // size of training set
-        int NTRAIN  = 100; // (bmp.listBMP().length/4)
+        int NTRAIN  = -1;          // -1 -> all
         // size of validation set
         int NVALID  = 4;
+        // number of trainings over the training set
+        int NTRAINS = 1;
+        // whether to activate negative training
+        String UNTRAIN = "least";
 
         // load images
         BMPLoader bmp = new BMPLoader(indir, outdir);
+        // short[][] images = bmp.readAll();
         short[][] images = bmp.readAll(NTRAIN);
         System.out.println("Elaborating images: " +
             images.length + "x" + bmp.height + "x" + bmp.width);
 
         // train
         SVQ svq = new SVQ(NCENTR, images[0].length);
-        svq.train(images);
+        for (int i=0; i<NTRAINS; i++) {
+            System.out.println("Training "+(i+1));
+            svq.train(images, UNTRAIN);
+        }
         bmp.saveAll(svq.getData(), "centr");
 
         short[][] selected = new short[NVALID][];
