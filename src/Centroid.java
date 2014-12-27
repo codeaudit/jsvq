@@ -90,8 +90,10 @@ class Centroid {
             // Using untraining on least:    27 47 31 49 / 154
         // return simpleHistogram(vec);   // 29 35 31 31 / 126
             // Using untraining on least:    24 22 33 32 / 111
+            // Using hik + untrain least:    25 41 23 31 / 120
         return multiresHistogram(vec); // 29 45 31 54 / 159
             // Using untraining on least:    24 21 16 33 / 94
+            // Using hik + untrain least:    23 34 23 31 / 111
     }
 
     // SIMILARITY MEASURES
@@ -124,12 +126,30 @@ class Centroid {
         return ret/vec.length;
     }
 
-    public int dot(int[] a, int[] b) {
+    private enum InnerType { PRODUCT, MINIMUM }
+    public int inner(int[] a, int[] b, String type) {
+        InnerType opt = InnerType.valueOf(type.toUpperCase());
         int ret = 0;
         for (int i=0; i<a.length; i++) {
-            ret += a[i] * b[i];
+            switch (opt) {
+                case PRODUCT:
+                    ret += a[i] * b[i];
+                    break;
+                case MINIMUM:
+                    ret += Math.min(a[i], b[i]);
+                    break;
+            }
         }
         return ret;
+    }
+
+    public int dot(int[] a, int[] b) {
+        return inner(a, b, "product");
+    }
+
+    // Histogram Intersection Kernel
+    public int hik(int[] a, int[] b) {
+        return inner(a, b, "minimum");
     }
 
     public int[][] getHists(short[] a, short[] b) {
@@ -161,7 +181,10 @@ class Centroid {
     public double simpleHistogram(short[] vec) {
         int[][] hists = getHists(data, vec);
         // TODO: try comparing with difference and square error
-        return dot(hists[0],hists[1])/(double)INTENSITIES;
+        // return dot(hists[0],hists[1])/(double)INTENSITIES;
+
+        // most work uses histogram intersection kernel rather than dot product
+        return hik(hists[0],hists[1])/(double)INTENSITIES;
     }
 
     // TODO: compute (maintain) centroid histogram while training
@@ -197,7 +220,10 @@ class Centroid {
             // then compare them
             // TODO: try comparing with difference and square error
             // TODO: compute avg on moving window instead of blind sums
-            dottotal += weight * dot(sums[0],sums[1]);
+            // dottotal += weight * dot(sums[0],sums[1]);
+
+            // Pyramid Match Kernel (Grauman et al.)
+            dottotal += weight * hik(sums[0],sums[1]);
         }
 
         return dottotal;
