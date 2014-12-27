@@ -2,13 +2,15 @@
 # Dev Notes
 
 ## Ideas
+- The spacialPyramidMatching method is TOO slow, optimize it?
 - Make centroids moving averages of their training?
 - Threshold to add new centroids?
 - Save and load centroids
 - Refactor `BMPLoader.java`, it's getting messy
-- Move similarity measures into their own class
+- Move similarity measures into their own class - seriously, it's a mess there
+- Refactor similarity measures code - there's a bit of repetition and ugliness
 - I might need a better untrain equation than `(1-eps)*centr - (eps)*(img)`
-- I need more resolution on the centroids, switch them back to `double[]` and CAREFUL with the comparisons to `short[]`
+- Seems the random initialization of the centroids works better if drawn from a similar distribution as the images - reset random centroids prior to first training?
 
 ## Notes
 
