@@ -91,9 +91,12 @@ class Centroid {
         // return simpleHistogram(vec);   // 29 35 31 31 / 126
             // Using untraining on least:    24 22 33 32 / 111
             // Using hik + untrain least:    25 41 23 31 / 120
-        return multiresHistogram(vec); // 29 45 31 54 / 159
+        // return multiresHistogram(vec); // 29 45 31 54 / 159
             // Using untraining on least:    24 21 16 33 / 94
             // Using hik + untrain least:    23 34 23 31 / 111
+        return spacialPyramidMatching(vec); // 34 63 32 59 / 188
+            // Using untraining on least:    85 121 76 111 / 393
+            // Using hik + untrain least:    85 121 76 111 / 393
     }
 
     // SIMILARITY MEASURES
@@ -166,6 +169,8 @@ class Centroid {
         }
         return ret;
     }
+
+    // Histogram methods
 
     public int[] getHist(short[] a) {
         int[] ret = new int[INTENSITIES];
@@ -287,5 +292,55 @@ class Centroid {
             ret+=hist[i];
         }
         return ret;
+    }
+
+    // Spacial Pyramid Matching algorithm from Lazebnik & al.
+    public double spacialPyramidMatching(short [] m) {
+        // Hypothesis: m is an array representation of a square matrix
+        // Same of course should go for the centroid (they lie in same space)
+        int linesize = (int) Math.sqrt(m.length);
+        // Hypothesis: the size of m's matrix is a power of 2, with exp <= MAXRES
+        int MAXRES = 3;
+        // Support vars
+        int blocksize, blocksPerLine, nblocks, row, col;
+        int[][] totals = new int[2][];
+        double similarity = 0, weight;
+
+        // Per each resolution
+        for (int res=0; res<=MAXRES; res++) {
+            // Compute how many blocks per line(/column)
+            blocksPerLine = (int)Math.pow(2,res);
+            // Compute the size each block
+            blocksize = linesize/blocksPerLine;
+            // Compute how many blocks total
+            nblocks = (int)Math.pow(blocksPerLine,2);
+            // Initialize total arrays
+            totals[0] = new int[nblocks];
+            totals[1] = new int[nblocks];
+            Arrays.fill(totals[0], 0);
+            Arrays.fill(totals[1], 0);
+
+            // Cycle for each block
+            for (int nblock=0; nblock<nblocks; nblock++) {
+                // Calculate row and column
+                row = nblock/blocksPerLine;
+                col = nblock%blocksPerLine;
+                // Calculate totals in block
+                totals[0][nblock] = getBlockTotal(data, linesize, blocksize, row, col);
+                totals[1][nblock] = getBlockTotal(m, linesize, blocksize, row, col);
+            }
+
+            // Calculate weight for this resolution
+            weight = ((double)MAXRES-res)/MAXRES;
+
+            // Add to similarity the weighted dot product between
+            // similarity += weight * dot(totals[0], totals[1]);
+
+            // Spacial Pyramid Match uses Histogram Intersection Kernel
+            similarity += weight * hik(totals[0], totals[1]);
+        }
+
+        // Finally...
+        return similarity;
     }
 }
