@@ -229,4 +229,53 @@ class Centroid {
         return dottotal;
     }
 
+
+    // Spacial histogram methods
+
+    // Returns the histogram for matrix of size linesize, block of size blocksize, block-row row, block-column col
+    public int[] getBlockHist(short[] m, int linesize, int blocksize, int row, int col) {
+
+        // Start from top-right corner
+        int i = 0;
+
+        // First move down to the block row:
+        // - linesize is a complete line
+        // - blocksize is the block height
+        // - row is the number of block rows
+        i += linesize * blocksize * row;
+
+        // Now move to the right block in the row
+        // - blocksize is the number of columns in a block
+        // - col is the number of blocks to skip
+        i += blocksize * col;
+
+        // We are now at the top-left corner of the right block
+
+        // We need a border to know when we finish counting for the current line
+        int border;
+        // And a variable where to store the block's histogram
+        int[] hist = new int[INTENSITIES];
+        Arrays.fill(hist, 0);
+
+        // Cycle over the lines
+        for (int nline=0; nline<blocksize; nline++) {
+            // Place the border at the end of the current line
+            border = i+blocksize;
+
+            // Now move `i` and build the histogram up to the border
+            for (; i<border; i++) {
+                hist[m[i]]++;
+            }
+
+            // `i` now points at the first cell of the next block
+            // we need to bring it down one full line, then back a block size
+            i += linesize - blocksize;
+            // The border instead just needs to go down one full line
+            border += linesize;
+        }
+
+        // The histogram for the block has been compiled
+        return hist;
+    }
+
 }
