@@ -6,8 +6,8 @@ class Centroid {
     int size, ntrains;
 
     int INTENSITIES = 256;
-    int MAXTRAINS = 100;
-    double MINLRATE = 1d/MAXTRAINS;
+    double MINLRATE = 1d/100;
+    double UNTRAINRATIO = 1d/100;
 
     public Centroid(int size) {
         this.size = size;
@@ -48,13 +48,8 @@ class Centroid {
     // Per-centroid learning rates - [0] for data, [1] for vec
     public double[] lrates(double factor) {
         double[] ret = new double[2];
-        if (ntrains<MAXTRAINS) {
-            // linearly decaying
-            ret[1] = factor/ntrains;
-        } else {
-            // lower bound
-            ret[1] = factor*MINLRATE;
-        }
+        // linearly decaying, lower bound
+        ret[1] = Math.max(factor/ntrains, factor*MINLRATE);
         ret[0] = 1-ret[1];
         return ret;
     }
@@ -66,7 +61,7 @@ class Centroid {
     // Trains the centroid to be a bit less similar to the input vector
     public void untrain(short[] vec) {
         // we want the changes to be minimal
-        double[] lrs = lrates(1d/100);
+        double[] lrs = lrates(UNTRAINRATIO);
         // adjust data[] learning rate
         lrs[0] = 1-lrs[1];
         // we want the changes to be negative
@@ -87,11 +82,16 @@ class Centroid {
     public double similarity(short[] vec) {
         checkSize(vec);                   // Avg total reconstr errors on 4 imgs
                                           // (/ totals) after training on 100 imgs
-        // return simpleDotProduct(vec);  //  0 31 30 39 / 100
-        // return shiftedDotProduct(vec); // 27 48 30 50 / 155
-        // return squareError(vec);       // 27 34 35 40 / 136
-        // return simpleHistogram(vec);   // 27 24 30 43 / 124
-        return multiresHistogram(vec);    // 26 27 30 36 / 119
+        // return simpleDotProduct(vec);  //  12 36 23 41 / 112
+            // Using untraining on least:    23 35 18 41 / 117
+        // return shiftedDotProduct(vec); // 34 63 32 59 / 188
+            // Using untraining on least:    34 63 32 59 / 188
+        // return squareError(vec);       // 26 37 34 42 / 139
+            // Using untraining on least:    27 47 31 49 / 154
+        // return simpleHistogram(vec);   // 29 35 31 31 / 126
+            // Using untraining on least:    24 22 33 32 / 111
+        return multiresHistogram(vec); // 29 45 31 54 / 159
+            // Using untraining on least:    24 21 16 33 / 94
     }
 
     // SIMILARITY MEASURES
@@ -106,10 +106,10 @@ class Centroid {
     }
 
     public double shiftedDotProduct(short[] vec) {
-        // Gives same importance to luminosity and darkness
+        // Gives same importance to luminosity and darkness matches
         double ret = 0;
         for (int i=0; i<size; i++) {
-            // Shift both in range [-0.5,0.5] (or [-128,127] for shorts)
+            // Shift both in range [-128,127]
             ret += (data[i]-128) * (vec[i]-128);
         }
         return ret/vec.length;

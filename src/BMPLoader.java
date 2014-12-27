@@ -135,7 +135,7 @@ public class BMPLoader {
 
     public short[][] readAllBMPInDir(String path, int limit) {
         File[] files = listBMPInDir(path);
-        if (limit<=0) { limit = files.length; }
+        if (limit<=0 || limit>files.length) { limit = files.length; }
         short[][] ret = new short[limit][];
         System.out.println("Loading all BMP files in path `"+path+"`");
         int i;
