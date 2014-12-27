@@ -9,14 +9,30 @@ class Centroid {
     double MINLRATE = 1d/100;
     double UNTRAINRATIO = 1d/100;
 
-    public Centroid(int size) {
+    private enum CompareMethod { DOT, HIK }
+    CompareMethod compareMethod;
+    private enum SimilarityMethod {
+        SIMPLEDOTPRODUCT,
+        SHIFTEDDOTPRODUCT,
+        SQUAREERROR,
+        SIMPLEHISTOGRAM,
+        PYRAMIDMATCHING,
+        SPACIALPYRAMIDMATCHING
+    }
+    SimilarityMethod similarityMethod;
+
+    public Centroid(int size, String compareMethod, String similarityMethod) {
         this.size = size;
         this.ntrains = 1;
         this.data = new short[size];
+        this.compareMethod = CompareMethod.valueOf(compareMethod.toUpperCase());
+        this.similarityMethod = SimilarityMethod.valueOf(similarityMethod.toUpperCase());
+        randomInitData();
+    }
+
+    public void randomInitData() {
         Random random = new Random();
         for (int i = 0; i < size; i++) {
-            // TESTING WHITE CENTROIDS - DOT MATCH ALL!!
-            // data[i] = (short)255;
             data[i] = (short) random.nextInt(INTENSITIES);
         }
     }
@@ -80,20 +96,29 @@ class Centroid {
     }
 
     public double similarity(short[] vec) {
-        checkSize(vec);                   // Avg total reconstr errors on 4 imgs
-                                          // (/ totals) after training on 100 imgs
-        // return simpleDotProduct(vec);  //  12 36 23 41 / 112
-            // Using untraining on least:    23 35 18 41 / 117
-        // return shiftedDotProduct(vec); // 34 63 32 59 / 188
-            // Using untraining on least:    34 63 32 59 / 188
-        // return squareError(vec);       // 26 37 34 42 / 139
-            // Using untraining on least:    27 47 31 49 / 154
-        // return simpleHistogram(vec);   // 29 35 31 31 / 126
-            // Using untraining on least:    24 22 33 32 / 111
-            // Using hik + untrain least:    25 41 23 31 / 120
-        return multiresHistogram(vec); // 29 45 31 54 / 159
-            // Using untraining on least:    24 21 16 33 / 94
-            // Using hik + untrain least:    23 34 23 31 / 111
+        checkSize(vec);
+        double ret = Double.NaN;
+        switch (similarityMethod) {
+            case SIMPLEDOTPRODUCT:
+                ret = simpleDotProduct(vec);
+                break;
+            case SHIFTEDDOTPRODUCT:
+                ret = shiftedDotProduct(vec);
+                break;
+            case SQUAREERROR:
+                ret = squareError(vec);
+                break;
+            case SIMPLEHISTOGRAM:
+                ret = simpleHistogram(vec);
+                break;
+            case PYRAMIDMATCHING:
+                ret = pyramidMatching(vec);
+                break;
+            case SPACIALPYRAMIDMATCHING:
+                ret = spacialPyramidMatching(vec);
+                break;
+        }
+        return ret;
     }
 
     // SIMILARITY MEASURES
@@ -152,6 +177,24 @@ class Centroid {
         return inner(a, b, "minimum");
     }
 
+    // TODO: do we need inner() at this point? refactor if not
+    // TODO: try comparing with difference and square error
+    public int compare(int[] a, int[] b) {
+        double ret = Double.NaN; // cosa mi tocca fare per avere un check...
+        switch (compareMethod) {
+            case DOT:
+                ret = dot(a,b);
+                break;
+            case HIK:
+                ret = hik(a,b);
+                break;
+        }
+        if (ret==Double.NaN) {
+            throw new RuntimeException("Unrecognized compare method.");
+        }
+        return (int)ret;
+    }
+
     public int[][] getHists(short[] a, short[] b) {
         int[][] ret = new int[2][];
         ret[0] = new int[INTENSITIES];
@@ -167,6 +210,8 @@ class Centroid {
         return ret;
     }
 
+    // Histogram methods
+
     public int[] getHist(short[] a) {
         int[] ret = new int[INTENSITIES];
         Arrays.fill(ret, 0);
@@ -180,17 +225,14 @@ class Centroid {
     // TODO: compute (maintain) centroid histogram while training
     public double simpleHistogram(short[] vec) {
         int[][] hists = getHists(data, vec);
-        // TODO: try comparing with difference and square error
-        // return dot(hists[0],hists[1])/(double)INTENSITIES;
-
         // most work uses histogram intersection kernel rather than dot product
-        return hik(hists[0],hists[1])/(double)INTENSITIES;
+        return compare(hists[0], hists[1]) / (double)INTENSITIES;
     }
 
     // TODO: compute (maintain) centroid histogram while training
-    public double multiresHistogram(short[] vec) {
+    public double pyramidMatching(short[] vec) {
         int[][] hists = getHists(data, vec);
-        double dottotal = 0, weight;
+        double similarity = 0, weight;
 
         int[][] sums = new int[2][];
         sums[0] = new int[INTENSITIES];
@@ -220,13 +262,121 @@ class Centroid {
             // then compare them
             // TODO: try comparing with difference and square error
             // TODO: compute avg on moving window instead of blind sums
-            // dottotal += weight * dot(sums[0],sums[1]);
-
-            // Pyramid Match Kernel (Grauman et al.)
-            dottotal += weight * hik(sums[0],sums[1]);
+            // Pyramid Match Kernel (Grauman et al.) uses HIK here
+            similarity += weight * compare(sums[0],sums[1]);
         }
 
-        return dottotal;
+        return similarity;
     }
 
+
+    // Spacial histogram methods
+
+    // Returns the histogram for matrix of size linesize,
+    // block of size blocksize, row and column in block coordinates
+    public int[] getBlockHist(short[] m, int linesize, int blocksize, int row, int col) {
+
+        // Start from top-left corner
+        int i = 0;
+
+        // First move down to the block row:
+        // - linesize is a complete line
+        // - blocksize is the block height
+        // - row is the number of block rows
+        i += linesize * blocksize * row;
+
+        // Now move to the correct block in the block row
+        // - blocksize is the number of columns in a block
+        // - col is the number of blocks to skip
+        i += blocksize * col;
+
+        // We are now at the top-left corner of the correct block
+
+        // We need a border to know when we finish counting for the current line
+        // Place the border at the end of the current line
+        int border = i+blocksize;
+        // And a variable where to store the block's histogram
+        int[] hist = new int[INTENSITIES];
+        Arrays.fill(hist, 0);
+
+        // Cycle over the lines of the block
+        for (int nline=0; nline<blocksize; nline++) {
+            // Now move `i` and build the histogram up to the border
+            for (; i<border; i++) {
+                hist[m[i]]++;
+            }
+
+            // `i` now points at the first cell of the next block/line
+            // we need to bring it down one full line, then back a block size
+            i += linesize - blocksize;
+            // The border instead just needs to go down one full line
+            border += linesize;
+        }
+
+        // The histogram for the block has been compiled
+        return hist;
+    }
+
+    // Logarithm base 2 optimized for integers
+    // http://stackoverflow.com/questions/3305059/how-do-you-calculate-log-base-2-in-java-for-integers
+    public static int log2(int n){
+        if(n <= 0) throw new IllegalArgumentException();
+        return 31 - Integer.numberOfLeadingZeros(n);
+    }
+
+    // Spacial Pyramid Matching algorithm from Lazebnik & al.
+    public double spacialPyramidMatching(short [] m) {
+        // Hypothesis: m is an array representation of a square matrix
+        // Same of course should go for the centroid (they lie in same space)
+        int linesize = (int) Math.sqrt(m.length);
+        // Hypothesis: the size of m's matrix is a power of 2, with exp <= MAXRES
+        int MAXRES = log2(linesize);
+        // Support vars
+        int blocksize, blocksPerLine, nblocks, row, col;
+        int[] tmphist;
+        int[][] hists = new int[2][], tmphists = new int[2][];
+        double similarity = 0, weight;
+
+        // Per each resolution
+        for (int res=0; res<=MAXRES; res++) {
+            // Compute how many blocks per line(/column)
+            blocksPerLine = (int)Math.pow(2,res);
+            // Compute the size each block
+            blocksize = linesize/blocksPerLine;
+            // Compute how many blocks total
+            nblocks = (int)Math.pow(blocksPerLine,2);
+            // Initialize histogram arrays
+            // For easier computation I just append them all together
+            hists[0] = new int[nblocks*INTENSITIES];
+            hists[1] = new int[nblocks*INTENSITIES];
+            int histfill = 0;
+            Arrays.fill(hists[0], 0);
+            Arrays.fill(hists[1], 0);
+
+            // Cycle for each block
+            for (int nblock=0; nblock<nblocks; nblock++) {
+                // Calculate row and column
+                row = nblock/blocksPerLine;
+                col = nblock%blocksPerLine;
+                // Calculate histograms
+                tmphists[0] = getBlockHist(data, linesize, blocksize, row, col);
+                tmphists[1] = getBlockHist(m, linesize, blocksize, row, col);
+                // Append them to the hists for this level
+                for (int i=0; i<INTENSITIES; i++) {
+                    hists[0][histfill] = tmphists[0][i];
+                    hists[1][histfill] = tmphists[1][i];
+                    histfill++;
+                }
+            }
+
+            // Calculate weight for this resolution
+            weight = ((double)res+1)/MAXRES;
+
+            // Spacial Pyramid Match uses Histogram Intersection Kernel here
+            similarity += weight * compare(hists[0], hists[1]);
+        }
+
+        // Finally...
+        return similarity;
+    }
 }

@@ -13,8 +13,14 @@ public class Test {
         int NVALID  = 4;
         // number of trainings over the training set
         int NTRAINS = 1;
-        // whether to activate negative training
+        // whether to activate negative training: { "no", "all", "least" }
         String UNTRAIN = "least";
+        // comparison method to use inside centroids: { "dot", "hik" }
+        String COMPMETHOD = "dot";
+        // similarity method to use inside centroids:
+        // { "simpleDotProduct", "shiftedDotProduct", "squareError",
+        //   "simpleHistogram", "pyramidMatching", "spacialPyramidMatching" }
+        String SIMILMETHOD = "pyramidMatching";
 
         // load images
         BMPLoader bmp = new BMPLoader(indir, outdir);
@@ -24,7 +30,7 @@ public class Test {
             images.length + "x" + bmp.height + "x" + bmp.width);
 
         // train
-        SVQ svq = new SVQ(NCENTR, images[0].length);
+        SVQ svq = new SVQ(NCENTR, images[0].length, COMPMETHOD, SIMILMETHOD);
         for (int i=0; i<NTRAINS; i++) {
             System.out.println("Training "+(i+1));
             svq.train(images, UNTRAIN);
