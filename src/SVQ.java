@@ -12,12 +12,12 @@ public class SVQ {
     Centroid[] centroids;
     int ncentr, imgsize;
 
-    public SVQ(int ncentr, int imgsize) {
+    public SVQ(int ncentr, int imgsize, String compMethod, String similMethod) {
         this.ncentr = ncentr;
         this.imgsize = imgsize;
         centroids = new Centroid[ncentr];
         for (int i=0; i<ncentr; i++) {
-            centroids[i] = new Centroid(imgsize);
+            centroids[i] = new Centroid(imgsize, compMethod, similMethod);
         }
     }
 

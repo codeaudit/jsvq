@@ -9,14 +9,30 @@ class Centroid {
     double MINLRATE = 1d/100;
     double UNTRAINRATIO = 1d/100;
 
-    public Centroid(int size) {
+    private enum CompareMethod { DOT, HIK }
+    CompareMethod compareMethod;
+    private enum SimilarityMethod {
+        SIMPLEDOTPRODUCT,
+        SHIFTEDDOTPRODUCT,
+        SQUAREERROR,
+        SIMPLEHISTOGRAM,
+        PYRAMIDMATCHING,
+        SPACIALPYRAMIDMATCHING
+    }
+    SimilarityMethod similarityMethod;
+
+    public Centroid(int size, String compareMethod, String similarityMethod) {
         this.size = size;
         this.ntrains = 1;
         this.data = new short[size];
+        this.compareMethod = CompareMethod.valueOf(compareMethod.toUpperCase());
+        this.similarityMethod = SimilarityMethod.valueOf(similarityMethod.toUpperCase());
+        randomInitData();
+    }
+
+    public void randomInitData() {
         Random random = new Random();
         for (int i = 0; i < size; i++) {
-            // TESTING WHITE CENTROIDS - DOT MATCH ALL!!
-            // data[i] = (short)255;
             data[i] = (short) random.nextInt(INTENSITIES);
         }
     }
@@ -80,23 +96,29 @@ class Centroid {
     }
 
     public double similarity(short[] vec) {
-        checkSize(vec);                   // Avg total reconstr errors on 4 imgs
-                                          // (/ totals) after training on 100 imgs
-        // return simpleDotProduct(vec);  //  12 36 23 41 / 112
-            // Using untraining on least:    23 35 18 41 / 117
-        // return shiftedDotProduct(vec); // 34 63 32 59 / 188
-            // Using untraining on least:    34 63 32 59 / 188
-        // return squareError(vec);       // 26 37 34 42 / 139
-            // Using untraining on least:    27 47 31 49 / 154
-        // return simpleHistogram(vec);   // 29 35 31 31 / 126
-            // Using untraining on least:    24 22 33 32 / 111
-            // Using hik + untrain least:    25 41 23 31 / 120
-        // return multiresHistogram(vec); // 29 45 31 54 / 159
-            // Using untraining on least:    24 21 16 33 / 94
-            // Using hik + untrain least:    23 34 23 31 / 111
-        return spacialPyramidMatching(vec); // 34 63 32 59 / 188
-            // Using untraining on least:    85 121 76 111 / 393
-            // Using hik + untrain least:    85 121 76 111 / 393
+        checkSize(vec);
+        double ret = Double.NaN;
+        switch (similarityMethod) {
+            case SIMPLEDOTPRODUCT:
+                ret = simpleDotProduct(vec);
+                break;
+            case SHIFTEDDOTPRODUCT:
+                ret = shiftedDotProduct(vec);
+                break;
+            case SQUAREERROR:
+                ret = squareError(vec);
+                break;
+            case SIMPLEHISTOGRAM:
+                ret = simpleHistogram(vec);
+                break;
+            case PYRAMIDMATCHING:
+                ret = pyramidMatching(vec);
+                break;
+            case SPACIALPYRAMIDMATCHING:
+                ret = spacialPyramidMatching(vec);
+                break;
+        }
+        return ret;
     }
 
     // SIMILARITY MEASURES
@@ -155,6 +177,24 @@ class Centroid {
         return inner(a, b, "minimum");
     }
 
+    // TODO: do we need inner() at this point? refactor if not
+    // TODO: try comparing with difference and square error
+    public int compare(int[] a, int[] b) {
+        double ret = Double.NaN; // cosa mi tocca fare per avere un check...
+        switch (compareMethod) {
+            case DOT:
+                ret = dot(a,b);
+                break;
+            case HIK:
+                ret = hik(a,b);
+                break;
+        }
+        if (ret==Double.NaN) {
+            throw new RuntimeException("Unrecognized compare method.");
+        }
+        return (int)ret;
+    }
+
     public int[][] getHists(short[] a, short[] b) {
         int[][] ret = new int[2][];
         ret[0] = new int[INTENSITIES];
@@ -185,17 +225,14 @@ class Centroid {
     // TODO: compute (maintain) centroid histogram while training
     public double simpleHistogram(short[] vec) {
         int[][] hists = getHists(data, vec);
-        // TODO: try comparing with difference and square error
-        // return dot(hists[0],hists[1])/(double)INTENSITIES;
-
         // most work uses histogram intersection kernel rather than dot product
-        return hik(hists[0],hists[1])/(double)INTENSITIES;
+        return compare(hists[0], hists[1]) / (double)INTENSITIES;
     }
 
     // TODO: compute (maintain) centroid histogram while training
-    public double multiresHistogram(short[] vec) {
+    public double pyramidMatching(short[] vec) {
         int[][] hists = getHists(data, vec);
-        double dottotal = 0, weight;
+        double similarity = 0, weight;
 
         int[][] sums = new int[2][];
         sums[0] = new int[INTENSITIES];
@@ -225,13 +262,11 @@ class Centroid {
             // then compare them
             // TODO: try comparing with difference and square error
             // TODO: compute avg on moving window instead of blind sums
-            // dottotal += weight * dot(sums[0],sums[1]);
-
-            // Pyramid Match Kernel (Grauman et al.)
-            dottotal += weight * hik(sums[0],sums[1]);
+            // Pyramid Match Kernel (Grauman et al.) uses HIK here
+            similarity += weight * compare(sums[0],sums[1]);
         }
 
-        return dottotal;
+        return similarity;
     }
 
 
@@ -333,11 +368,8 @@ class Centroid {
             // Calculate weight for this resolution
             weight = ((double)MAXRES-res)/MAXRES;
 
-            // Add to similarity the weighted dot product between
-            // similarity += weight * dot(totals[0], totals[1]);
-
-            // Spacial Pyramid Match uses Histogram Intersection Kernel
-            similarity += weight * hik(totals[0], totals[1]);
+            // Spacial Pyramid Match uses Histogram Intersection Kernel here
+            similarity += weight * compare(totals[0], totals[1]);
         }
 
         // Finally...
