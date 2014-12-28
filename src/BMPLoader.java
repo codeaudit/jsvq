@@ -13,6 +13,12 @@ public class BMPLoader {
     public String inputDir;
     public String outputDir;
 
+    // to use in contexts without loading
+    public BMPLoader(int width, int height) {
+        this.width = width;
+        this.height = height;
+    }
+
     public BMPLoader(String in, String out) {
         this.inputDir = in;
         this.outputDir = out;
