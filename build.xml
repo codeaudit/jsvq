@@ -19,7 +19,15 @@
 
     <target name="jar" depends="clean,compile">
         <mkdir dir="${jar.dir}"/>
-        <jar destfile="${jar.dir}/${ant.project.name}.jar"
+        <exec executable="git" outputproperty="git.tag">
+              <arg value="describe"/>
+        </exec>
+        <exec executable="git" outputproperty="git.branch">
+              <arg value="rev-parse"/>
+              <arg value="--abbrev-ref"/>
+              <arg value="HEAD"/>
+        </exec>
+        <jar destfile="${jar.dir}/${ant.project.name}-${git.tag}-${git.branch}.jar"
              basedir="${classes.dir}">
             <manifest>
                 <attribute name="Main-Class" value="${main-class}"/>
