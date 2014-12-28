@@ -4,7 +4,7 @@ import java.util.Random;
 import java.util.Arrays;
 
 class Centroid {
-    short[] data;
+    int[] data;
     int size, ntrains;
 
     int INTENSITIES = 256;
@@ -26,7 +26,7 @@ class Centroid {
     public Centroid(int size, String compareMethod, String similarityMethod) {
         this.size = size;
         this.ntrains = 1;
-        this.data = new short[size];
+        this.data = new int[size];
         this.compareMethod = CompareMethod.valueOf(compareMethod.toUpperCase());
         this.similarityMethod = SimilarityMethod.valueOf(similarityMethod.toUpperCase());
         randomInitData();
@@ -40,12 +40,12 @@ class Centroid {
         int k = 0; // this allows to bias the random up
         Random random = new Random();
         for (int i = 0; i < size; i++) {
-            data[i] = (short) (k + random.nextInt(INTENSITIES-k));
+            data[i] = (int) (k + random.nextInt(INTENSITIES-k));
         }
     }
 
     // Quick error check for vector size consistency
-    public void checkSize(short[] vec) {
+    public void checkSize(int[] vec) {
         if (vec.length != size) {
             throw new RuntimeException(
                 "Input vector length does not match centroid size.");
@@ -53,18 +53,18 @@ class Centroid {
     }
 
     // Trains the centroid to be more similar to the input vector
-    public void train(short[] vec, double[] lrates) {
+    public void train(int[] vec, double[] lrates) {
         checkSize(vec);
         for (int i=0; i<size; i++) {
-            data[i] = (short) ((lrates[0]*data[i]) + (lrates[1]*vec[i]));
+            data[i] = (int) ((lrates[0]*data[i]) + (lrates[1]*vec[i]));
             // normalize
             if (data[i] < 0) { data[i] = 0; }
-            if (data[i] > INTENSITIES-1) { data[i] = (short)(INTENSITIES-1); }
+            if (data[i] > INTENSITIES-1) { data[i] = (int)(INTENSITIES-1); }
         }
         ntrains++;
     }
 
-    public void train(short[] vec) {
+    public void train(int[] vec) {
         train(vec, lrates());
     }
 
@@ -82,7 +82,7 @@ class Centroid {
     }
 
     // Trains the centroid to be a bit less similar to the input vector
-    public void untrain(short[] vec) {
+    public void untrain(int[] vec) {
         // we want the changes to be minimal
         double[] lrs = lrates(UNTRAINRATIO);
         // adjust data[] learning rate
@@ -94,7 +94,7 @@ class Centroid {
         ntrains--; // do not count untrains for the centroid
     }
 
-    public short[] getData() {
+    public int[] getData() {
         return data;
     }
 
@@ -102,7 +102,7 @@ class Centroid {
         return similarity(c.getData());
     }
 
-    public double similarity(short[] vec) {
+    public double similarity(int[] vec) {
         checkSize(vec);
         double ret = Double.NaN;
         switch (similarityMethod) {
@@ -130,7 +130,7 @@ class Centroid {
 
     // SIMILARITY MEASURES
 
-    public double simpleDotProduct(short[] vec) {
+    public double simpleDotProduct(int[] vec) {
         // Only measures corresponding lighting
         double ret = 0;
         for (int i=0; i<size; i++) {
@@ -139,7 +139,7 @@ class Centroid {
         return ret/vec.length;
     }
 
-    public double shiftedDotProduct(short[] vec) {
+    public double shiftedDotProduct(int[] vec) {
         // Gives same importance to luminosity and darkness matches
         double ret = 0;
         for (int i=0; i<size; i++) {
@@ -149,7 +149,7 @@ class Centroid {
         return ret/vec.length;
     }
 
-    public double squareError(short[] vec) {
+    public double squareError(int[] vec) {
         // Evergreen classic
         double ret = 0;
         for (int i=0; i<size; i++) {
@@ -202,7 +202,7 @@ class Centroid {
         return (int)ret;
     }
 
-    public int[][] getHists(short[] a, short[] b) {
+    public int[][] getHists(int[] a, int[] b) {
         int[][] ret = new int[2][];
         ret[0] = new int[INTENSITIES];
         ret[1] = new int[INTENSITIES];
@@ -219,7 +219,7 @@ class Centroid {
 
     // Histogram methods
 
-    public int[] getHist(short[] a) {
+    public int[] getHist(int[] a) {
         int[] ret = new int[INTENSITIES];
         Arrays.fill(ret, 0);
         // count instances of every intensity
@@ -230,14 +230,14 @@ class Centroid {
     }
 
     // TODO: compute (maintain) centroid histogram while training
-    public double simpleHistogram(short[] vec) {
+    public double simpleHistogram(int[] vec) {
         int[][] hists = getHists(data, vec);
         // most work uses histogram intersection kernel rather than dot product
         return compare(hists[0], hists[1]) / (double)INTENSITIES;
     }
 
     // TODO: compute (maintain) centroid histogram while training
-    public double pyramidMatching(short[] vec) {
+    public double pyramidMatching(int[] vec) {
         int[][] hists = getHists(data, vec);
         double similarity = 0, weight;
 
@@ -248,8 +248,8 @@ class Centroid {
         // Change nchunks: start by all pixels independently,
         // then sum two, then sum 4...
         for (int nchunks=INTENSITIES; nchunks>=1; nchunks/=2) {
-            Arrays.fill(sums[0], (short)0);
-            Arrays.fill(sums[1], (short)0);
+            Arrays.fill(sums[0], (int)0);
+            Arrays.fill(sums[1], (int)0);
 
             int i=0;
             // Now compute sums per each part in the nchunks
@@ -281,7 +281,7 @@ class Centroid {
 
     // Returns the histogram for matrix of size linesize,
     // block of size blocksize, row and column in block coordinates
-    public int[] getBlockHist(short[] m, int linesize, int blocksize, int row, int col) {
+    public int[] getBlockHist(int[] m, int linesize, int blocksize, int row, int col) {
 
         // Start from top-left corner
         int i = 0;
@@ -332,7 +332,7 @@ class Centroid {
     }
 
     // Spacial Pyramid Matching algorithm from Lazebnik & al.
-    public double spacialPyramidMatching(short [] m) {
+    public double spacialPyramidMatching(int [] m) {
         // Hypothesis: m is an array representation of a square matrix
         // Same of course should go for the centroid (they lie in same space)
         int linesize = (int) Math.sqrt(m.length);
