@@ -22,10 +22,13 @@
         <exec executable="git" outputproperty="git.tag">
               <arg value="describe"/>
         </exec>
-        <exec executable="git" outputproperty="git.branch">
+        <exec executable="git" outputproperty="git.branch.full">
               <arg value="rev-parse"/>
               <arg value="--abbrev-ref"/>
               <arg value="HEAD"/>
+        </exec>
+        <exec executable="basename" outputproperty="git.branch">
+              <arg value="${git.branch.full}"/>
         </exec>
         <jar destfile="${jar.dir}/${ant.project.name}-${git.tag}-${git.branch}.jar"
              basedir="${classes.dir}">
