@@ -1,3 +1,13 @@
+// SVQ test class
+package Test.SVQ;
+
+// Get JAFFE database from http://www.kasrl.org/jaffe_info.html
+// Extract pics in folder named "jaffe"
+// Convert to bmp with `ls *.tiff | while read f; do convert "$f" "${f%.*}.bmp"; done`
+
+import BMPLoader.*;
+import SVQ.*;
+
 public class Test {
     public static void main(String[] args) {
 

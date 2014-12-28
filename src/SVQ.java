@@ -1,8 +1,5 @@
-// Sparse Vector Quantization test file
-
-// Get JAFFE database from http://www.kasrl.org/jaffe_info.html
-// Extract pics in folder named "jaffe"
-// Convert to bmp with `ls *.tiff | while read f; do convert "$f" "${f%.*}.bmp"; done`
+// Sparse Vector Quantization
+package SVQ;
 
 import java.io.File;
 import java.util.Arrays;
