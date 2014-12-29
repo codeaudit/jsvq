@@ -1,8 +1,5 @@
-// Sparse Vector Quantization test file
-
-// Get JAFFE database from http://www.kasrl.org/jaffe_info.html
-// Extract pics in folder named "jaffe"
-// Convert to bmp with `ls *.tiff | while read f; do convert "$f" "${f%.*}.bmp"; done`
+// Sparse Vector Quantization
+package SVQ;
 
 import java.io.File;
 import java.util.Arrays;
@@ -21,18 +18,18 @@ public class SVQ {
         }
     }
 
-    public void checkLengths(short[] a, short[] b){
+    public void checkLengths(int[] a, int[] b){
         checkLengths(a, b.length);
     }
 
-    public void checkLengths(short[] a, int bLen){
+    public void checkLengths(int[] a, int bLen){
         if (a.length != bLen) {
             throw new RuntimeException(
                 "Vectors lengths don't match.");
         }
     }
 
-    public double[] similarities(short[] vec) {
+    public double[] similarities(int[] vec) {
         checkLengths(vec, imgsize);
         double[] ret = new double[ncentr];
         // System.out.print("Simils: ");
@@ -64,9 +61,9 @@ public class SVQ {
         return ret;
     }
 
-    public short[] code(short[] vec) {
-        short[] ret = new short[ncentr];
-        Arrays.fill(ret, (short)0);
+    public int[] code(int[] vec) {
+        int[] ret = new int[ncentr];
+        Arrays.fill(ret, (int)0);
 
         double[] mwi = maxWithIndex(similarities(vec));
         // System.out.println("Max: "+mwi[0]+" - idx: "+mwi[1]);
@@ -75,10 +72,10 @@ public class SVQ {
         return ret;
     }
 
-    public short[] reconstruct(short[] code) {
+    public int[] reconstruct(int[] code) {
         checkLengths(code, ncentr);
-        short[] ret = new short[imgsize];
-        Arrays.fill(ret, (short)0);
+        int[] ret = new int[imgsize];
+        Arrays.fill(ret, (int)0);
 
         for (int imgPos=0; imgPos<imgsize; imgPos++) {
             for (int cIdx=0; cIdx<ncentr; cIdx++) {
@@ -88,19 +85,19 @@ public class SVQ {
         return ret; //(new BMPLoader("","")).rescale(ret);
     }
 
-    public short[] reconstructionError(short[] orig, short[] reconstr) {
+    public int[] reconstructionError(int[] orig, int[] reconstr) {
         checkLengths(orig, reconstr);
-        short[] ret = new short[orig.length];
+        int[] ret = new int[orig.length];
         // simple difference - possibly use squared error instead
         for (int i=0; i<orig.length; i++) {
-            ret[i] = (short)Math.abs(orig[i]-reconstr[i]);
+            ret[i] = (int)Math.abs(orig[i]-reconstr[i]);
         }
         return ret;
     }
 
-    public short totalReconstructionError(short[] orig, short[] reconstr) {
-        short[] tmp = reconstructionError(orig, reconstr);
-        short ret = 0;
+    public int totalReconstructionError(int[] orig, int[] reconstr) {
+        int[] tmp = reconstructionError(orig, reconstr);
+        int ret = 0;
         // just total it - what a godforsaken language Java is...
         for (int i=0; i<tmp.length; i++) {
             ret += tmp[i];
@@ -108,7 +105,7 @@ public class SVQ {
         return ret;
     }
 
-    public void untrainAllBut(int idx, short[] img) {
+    public void untrainAllBut(int idx, int[] img) {
         for (int i=0; i<ncentr; i++) {
             if (i!=idx) {
                 centroids[i].untrain(img);
@@ -119,7 +116,7 @@ public class SVQ {
     private enum TrainOpts { NO, ALL, LEAST }
 
     // train on single image
-    public void train(short[] img, String untrain) {
+    public void train(int[] img, String untrain) {
         int[] minmax = minMaxIndices(similarities(img));
         int idxLeastSimilar = minmax[0];
         int idxMostSimilar  = minmax[1];
@@ -139,23 +136,23 @@ public class SVQ {
         }
     }
 
-    public void train(short[] img) {
+    public void train(int[] img) {
         train(img, "no");
     }
 
     // train on set of images
-    public void train(short[][] imgs, String untrain) {
+    public void train(int[][] imgs, String untrain) {
         for (int i=0; i<imgs.length; i++) {
             train(imgs[i], untrain);
         }
     }
 
-    public void train(short[][] imgs) {
+    public void train(int[][] imgs) {
         train(imgs, "no");
     }
 
-    public short[][] getData() {
-        short[][] ret = new short[ncentr][];
+    public int[][] getData() {
+        int[][] ret = new int[ncentr][];
         for (int i=0; i<ncentr; i++) {
             ret[i] = centroids[i].getData();
         }
