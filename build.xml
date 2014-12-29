@@ -1,4 +1,4 @@
-<project name="SVQ" basedir="." default="main">
+<project name="SVQ" basedir="." default="run">
 
     <property name="src.dir"     value="src"/>
     <property name="build.dir"   value="build"/>
@@ -44,7 +44,8 @@
     </target>
  -->
 
-    <target name="run" depends="compile">
+     <!-- wanna make sure I won't forget fresh jars -->
+    <target name="run" depends="jar">
         <java classname="${main-class}">
             <classpath>
                 <pathelement location="${classes.dir}"/>
@@ -55,7 +56,5 @@
 <!--     <target name="clean-build" depends="clean,compile"/>
     <target name="main" depends="clean,run"/>
  -->
-
-    <target name="main" depends="run"/>
 
 </project>
