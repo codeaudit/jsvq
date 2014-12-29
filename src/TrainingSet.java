@@ -4,7 +4,7 @@ package SVQ;
 
 // INTERFACE:
 // - `tryAdd(vec)`: Each SVQ coding should call this to candidate the vec.
-// - `flush()`: Save chosen vecs, call when an individual has finished.
+// - `flushCurrent()`: Save chosen vecs, call when an individual has finished.
 // - `returnVecsAndReset()`: Retrieve all the vecs and reset the state,
 //   call at end of generation.
 
@@ -105,7 +105,7 @@ public class TrainingSet {
         }
     }
 
-    public void flush() {
+    public void flushCurrent() {
         full.addAll(current);
         resetCurrent();
     }

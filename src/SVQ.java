@@ -32,6 +32,16 @@ public class SVQ {
         }
     }
 
+    // Training set interface: code(vec), flushTrainingSet(), autoTrain()
+
+    public void flushTrainingSet() {
+        tset.flushCurrent();
+    }
+
+    public void autoTrain() {
+        train(tset.getFullVecs());
+    }
+
     public void checkLengths(int[] a, int[] b){
         checkLengths(a, b.length);
     }

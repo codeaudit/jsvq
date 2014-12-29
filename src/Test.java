@@ -33,7 +33,7 @@ public class Test {
         //   "simpleHistogram", "pyramidMatching", "spacialPyramidMatching" }
         String SIMILMETHOD = "spacialPyramidMatching";
         // size of autotraining set
-        int TRAINSETSIZE = -1; // -1 -> disable
+        int TRAINSETSIZE = 3; // -1 -> disable
 
         // load images
         BMPLoader bmp = new BMPLoader(indir, outdir);
@@ -42,12 +42,27 @@ public class Test {
         System.out.println("Elaborating images: " +
             images.length + "x" + bmp.height + "x" + bmp.width);
 
-        // train
+        // Declare svq
         SVQ svq = new SVQ(NCENTR, images[0].length,
                           COMPMETHOD, SIMILMETHOD, UNTRAIN,
                           TRAINSETSIZE);
+
+        // Train - select by CODING them! (autotrain feature)
         for (int i=0; i<NTRAINS; i++) {
             System.out.println("Training "+(i+1));
+            for (int j=0; j<images.length; j++ ) {
+                // code image - simulate new observation
+                svq.code(images[j]);
+                if (j%10==0) {
+                    // flush every 10 images - simulate new individual
+                    svq.flushTrainingSet();
+                }
+                if (j%100==0) {
+                    // train every 100 images - simulate new generation
+                    svq.autoTrain();
+                }
+            }
+            // flush and train on remaining
         }
         bmp.saveAll(svq.getData(), "centr");
 
