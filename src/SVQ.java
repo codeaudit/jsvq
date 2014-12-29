@@ -10,17 +10,22 @@ public class SVQ {
     int ncentr, imgsize;
     TrainingSet tset; // if not null, enables autotrain
 
+    private enum TrainOpts { NO, ALL, LEAST }
+    TrainOpts trainOpt;
+
     public SVQ(int ncentr, int imgsize, String compMethod, String similMethod,
-               int tsetsize) {
-        this(ncentr, imgsize, compMethod, similMethod);
+               String trainOpt, int tsetsize) {
+        this(ncentr, imgsize, compMethod, similMethod, trainOpt);
         if (tsetsize>0) {
             tset = new TrainingSet(tsetsize);
         }
     }
 
-    public SVQ(int ncentr, int imgsize, String compMethod, String similMethod) {
+    public SVQ(int ncentr, int imgsize, String compMethod, String similMethod,
+               String trainOpt) {
         this.ncentr = ncentr;
         this.imgsize = imgsize;
+        this.trainOpt = TrainOpts.valueOf(trainOpt.toUpperCase());
         centroids = new Centroid[ncentr];
         for (int i=0; i<ncentr; i++) {
             centroids[i] = new Centroid(imgsize, compMethod, similMethod);
@@ -65,6 +70,14 @@ public class SVQ {
         for (int i=1; i<vec.length; i++) {
             if (vec[i]<vec[ret[0]]) { ret[0] = i; }
             if (vec[i]>vec[ret[1]]) { ret[1] = i; }
+        }
+        return ret;
+    }
+
+    public int[][] code(int[][] vecs) {
+        int[][] ret = new int[vecs.length][];
+        for (int i=0; i<vecs.length; i++) {
+            ret[i] = code(vecs[i]);
         }
         return ret;
     }
@@ -128,16 +141,13 @@ public class SVQ {
         }
     }
 
-    private enum TrainOpts { NO, ALL, LEAST }
-
     // train on single image
-    public void train(int[] img, String untrain) {
+    public void train(int[] img) {
         int[] minmax = minMaxIndices(similarities(img));
         int idxLeastSimilar = minmax[0];
         int idxMostSimilar  = minmax[1];
 
-        TrainOpts opt = TrainOpts.valueOf(untrain.toUpperCase());
-        switch (opt) {
+        switch (trainOpt) {
             case NO:
                 centroids[idxMostSimilar].train(img);
                 break;
@@ -151,19 +161,11 @@ public class SVQ {
         }
     }
 
-    public void train(int[] img) {
-        train(img, "no");
-    }
-
     // train on set of images
-    public void train(int[][] imgs, String untrain) {
-        for (int i=0; i<imgs.length; i++) {
-            train(imgs[i], untrain);
-        }
-    }
-
     public void train(int[][] imgs) {
-        train(imgs, "no");
+        for (int i=0; i<imgs.length; i++) {
+            train(imgs[i]);
+        }
     }
 
     public int[][] getData() {

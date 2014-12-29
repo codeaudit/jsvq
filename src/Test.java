@@ -44,10 +44,10 @@ public class Test {
 
         // train
         SVQ svq = new SVQ(NCENTR, images[0].length,
-                          COMPMETHOD, SIMILMETHOD, TRAINSETSIZE);
+                          COMPMETHOD, SIMILMETHOD, UNTRAIN,
+                          TRAINSETSIZE);
         for (int i=0; i<NTRAINS; i++) {
             System.out.println("Training "+(i+1));
-            svq.train(images, UNTRAIN);
         }
         bmp.saveAll(svq.getData(), "centr");
 
