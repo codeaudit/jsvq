@@ -1,13 +1,13 @@
 #!/bin/bash
 
-mainfolder="${HOME}/torcs_imgs/"
+mainfolder="${HOME}/torcs_imgs"
 minfiles=5
 
 
 echo "Deleting all folders in '${mainfolder}' with less than ${minfiles} files."
 echo
 
-ls -d ${mainfolder}*/ |
+ls -d ${mainfolder}/*/ |
 while read dir; do
   echo "$(basename ${dir}/)"
   nfiles=$(ls $dir | wc -w)
