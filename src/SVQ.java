@@ -75,6 +75,14 @@ public class SVQ {
 
         double[] sims = similarities(vec);
         int idx = maxIdx(sims);
+
+        // if we're using autotrain
+        if (tset != null) {
+            // try to add the image to the training set
+            tset.tryAdd(vec,sims[idx]);
+            // TODO: I could also cache the similarities
+        }
+
         ret[idx] = 1;
         return ret;
     }
