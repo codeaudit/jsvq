@@ -19,7 +19,7 @@ public class Test {
         // number of centroids
         int NCENTR  = 8;
         // size of training set
-        int NTRAIN  = -1;          // -1 -> all
+        int NTRAIN  = -1; // -1 -> all
         // size of validation set
         int NVALID  = 4;
         // number of trainings over the training set
@@ -32,6 +32,8 @@ public class Test {
         // { "simpleDotProduct", "shiftedDotProduct", "squareError",
         //   "simpleHistogram", "pyramidMatching", "spacialPyramidMatching" }
         String SIMILMETHOD = "spacialPyramidMatching";
+        // size of autotraining set
+        int TRAINSETSIZE = 3; // -1 -> disable
 
         // load images
         BMPLoader bmp = new BMPLoader(indir, outdir);
@@ -40,11 +42,27 @@ public class Test {
         System.out.println("Elaborating images: " +
             images.length + "x" + bmp.height + "x" + bmp.width);
 
-        // train
-        SVQ svq = new SVQ(NCENTR, images[0].length, COMPMETHOD, SIMILMETHOD);
+        // Declare svq
+        SVQ svq = new SVQ(NCENTR, images[0].length,
+                          COMPMETHOD, SIMILMETHOD, UNTRAIN,
+                          TRAINSETSIZE);
+
+        // Train - select by CODING them! (autotrain feature)
         for (int i=0; i<NTRAINS; i++) {
             System.out.println("Training "+(i+1));
-            svq.train(images, UNTRAIN);
+            for (int j=0; j<images.length; j++ ) {
+                // code image - simulate new observation
+                svq.code(images[j]);
+                if (j%10==0) {
+                    // flush every 10 images - simulate new individual
+                    svq.flushTrainingSet();
+                }
+                if (j%100==0) {
+                    // train every 100 images - simulate new generation
+                    svq.autoTrain();
+                }
+            }
+            // flush and train on remaining
         }
         bmp.saveAll(svq.getData(), "centr");
 
@@ -84,5 +102,70 @@ public class Test {
         System.out.println();
 
         System.out.println("\nDone!");
+    }
+
+
+// OLD TESTS
+
+
+    // Test if the sorting is correct - should be DESC
+    public static void testTrainingSet() {
+        int maxsize = 2;
+        TrainingSet ts = new TrainingSet(maxsize);
+        double[] sims;
+        int[] vals = {0,0,0};
+        ts.tryAdd(vals, 2.0);
+        ts.tryAdd(vals, 1.0);
+        ts.tryAdd(vals, 3.0);
+
+        sims = ts.getCurrentSims();
+        System.out.println("Current: ");
+        for (int i=0; i<sims.length; i++) {
+            System.out.println(sims[i]);
+        }
+
+        sims = ts.getFullSims();
+        System.out.println("Full size: " + sims.length);
+
+        ts.flushCurrent();
+
+        ts.tryAdd(vals, 4.0);
+        ts.tryAdd(vals, 6.0);
+        ts.tryAdd(vals, 5.0);
+
+        sims = ts.getCurrentSims();
+        System.out.println("Current: ");
+        for (int i=0; i<sims.length; i++) {
+            System.out.println(sims[i]);
+        }
+
+        sims = ts.getFullSims();
+        System.out.println("Full: ");
+        for (int i=0; i<sims.length; i++) {
+            System.out.println(sims[i]);
+        }
+
+        ts.flushCurrent();
+
+        sims = ts.getFullSims();
+        System.out.println("Full: ");
+        for (int i=0; i<sims.length; i++) {
+            System.out.println(sims[i]);
+        }
+
+        int[][] vecs = ts.returnVecsAndReset();
+        System.out.println("Final vecs: ");
+        for (int i=0; i<vecs.length; i++) {
+            for (int j=0; j<vecs[0].length; j++) {
+                System.out.print(vecs[i][j]);
+            }
+            System.out.println();
+        }
+
+        sims = ts.getCurrentSims();
+        System.out.println("Current size: " + sims.length);
+
+        sims = ts.getFullSims();
+        System.out.println("Full size: " + sims.length);
     }
 }
