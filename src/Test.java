@@ -1,8 +1,19 @@
+// SVQ test class
+package Test.SVQ;
+
+// Get JAFFE database from http://www.kasrl.org/jaffe_info.html
+// Extract pics in folder named "jaffe"
+// Convert to bmp with `ls *.tiff | while read f; do convert "$f" "${f%.*}.bmp"; done`
+
+import BMPLoader.*;
+import SVQ.*;
+
 public class Test {
     public static void main(String[] args) {
 
         // directory where the input images are located
-        String indir = "jaffe";
+        // String indir = System.getProperty("user.home")+"/torcs_imgs/";
+        String indir = "torcs";
         // directory where to place the output (centroids, etc)
         String outdir = "out";
         // number of centroids
@@ -24,8 +35,8 @@ public class Test {
 
         // load images
         BMPLoader bmp = new BMPLoader(indir, outdir);
-        // short[][] images = bmp.readAll();
-        short[][] images = bmp.readAll(NTRAIN);
+        // int[][] images = bmp.readAll();
+        int[][] images = bmp.readAll(NTRAIN);
         System.out.println("Elaborating images: " +
             images.length + "x" + bmp.height + "x" + bmp.width);
 
@@ -37,10 +48,10 @@ public class Test {
         }
         bmp.saveAll(svq.getData(), "centr");
 
-        short[][] selected = new short[NVALID][];
-        short[][] codes    = new short[NVALID][];
-        short[][] reconstr = new short[NVALID][];
-        short[][] errors   = new short[NVALID][];
+        int[][] selected = new int[NVALID][];
+        int[][] codes    = new int[NVALID][];
+        int[][] reconstr = new int[NVALID][];
+        int[][] errors   = new int[NVALID][];
 
         // NVALID "pseudorandom" images, from training range
         for (int i=0; i<NVALID; i++) {

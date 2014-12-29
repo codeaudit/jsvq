@@ -2,6 +2,7 @@
 # Dev Notes
 
 ## Ideas
+- Spacial+Pyramid matching: SPM where patches are compared with PM rather than HIK
 - The spacialPyramidMatching method is TOO slow, optimize it?
 - Make centroids moving averages of their training?
 - Threshold to add new centroids?
