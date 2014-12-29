@@ -12,8 +12,8 @@ public class Test {
     public static void main(String[] args) {
 
         // directory where the input images are located
-        String indir = System.getProperty("user.home") +
-            "/torcs_imgs/"+"";
+        // String indir = System.getProperty("user.home")+"/torcs_imgs/";
+        String indir = "torcs";
         // directory where to place the output (centroids, etc)
         String outdir = "out";
         // number of centroids
