@@ -8,14 +8,38 @@ public class SVQ {
 
     Centroid[] centroids;
     int ncentr, imgsize;
+    TrainingSet tset; // if not null, enables autotrain
 
-    public SVQ(int ncentr, int imgsize, String compMethod, String similMethod) {
+    private enum TrainOpts { NO, ALL, LEAST }
+    TrainOpts trainOpt;
+
+    public SVQ(int ncentr, int imgsize, String compMethod, String similMethod,
+               String trainOpt, int tsetsize) {
+        this(ncentr, imgsize, compMethod, similMethod, trainOpt);
+        if (tsetsize>0) {
+            tset = new TrainingSet(tsetsize);
+        }
+    }
+
+    public SVQ(int ncentr, int imgsize, String compMethod, String similMethod,
+               String trainOpt) {
         this.ncentr = ncentr;
         this.imgsize = imgsize;
+        this.trainOpt = TrainOpts.valueOf(trainOpt.toUpperCase());
         centroids = new Centroid[ncentr];
         for (int i=0; i<ncentr; i++) {
             centroids[i] = new Centroid(imgsize, compMethod, similMethod);
         }
+    }
+
+    // Training set interface: code(vec), flushTrainingSet(), autoTrain()
+
+    public void flushTrainingSet() {
+        tset.flushCurrent();
+    }
+
+    public void autoTrain() {
+        train(tset.getFullVecs());
     }
 
     public void checkLengths(int[] a, int[] b){
@@ -41,15 +65,14 @@ public class SVQ {
         return ret;
     }
 
-    public double[] maxWithIndex(double[] vec) {
-        double[] ret = { vec[0], 0 };
+    public int maxIdx(double[] vec) {
+        int maxidx = 0;
         for (int i=1; i<vec.length; i++) {
-            if (vec[i]>ret[0]) {
-                ret[0] = vec[i];
-                ret[1] = i;
+            if (vec[i]>vec[maxidx]) {
+                maxidx = i;
             }
         }
-        return ret;
+        return maxidx;
     }
 
     public int[] minMaxIndices(double[] vec) {
@@ -61,14 +84,29 @@ public class SVQ {
         return ret;
     }
 
+    public int[][] code(int[][] vecs) {
+        int[][] ret = new int[vecs.length][];
+        for (int i=0; i<vecs.length; i++) {
+            ret[i] = code(vecs[i]);
+        }
+        return ret;
+    }
+
     public int[] code(int[] vec) {
         int[] ret = new int[ncentr];
         Arrays.fill(ret, (int)0);
 
-        double[] mwi = maxWithIndex(similarities(vec));
-        // System.out.println("Max: "+mwi[0]+" - idx: "+mwi[1]);
-        // here mwi[0] holds the max, if you need it
-        ret[(int)mwi[1]] = 1;
+        double[] sims = similarities(vec);
+        int idx = maxIdx(sims);
+
+        // if we're using autotrain
+        if (tset != null) {
+            // try to add the image to the training set
+            tset.tryAdd(vec,sims[idx]);
+            // TODO: I could also cache the similarities
+        }
+
+        ret[idx] = 1;
         return ret;
     }
 
@@ -113,16 +151,13 @@ public class SVQ {
         }
     }
 
-    private enum TrainOpts { NO, ALL, LEAST }
-
     // train on single image
-    public void train(int[] img, String untrain) {
+    public void train(int[] img) {
         int[] minmax = minMaxIndices(similarities(img));
         int idxLeastSimilar = minmax[0];
         int idxMostSimilar  = minmax[1];
 
-        TrainOpts opt = TrainOpts.valueOf(untrain.toUpperCase());
-        switch (opt) {
+        switch (trainOpt) {
             case NO:
                 centroids[idxMostSimilar].train(img);
                 break;
@@ -136,19 +171,11 @@ public class SVQ {
         }
     }
 
-    public void train(int[] img) {
-        train(img, "no");
-    }
-
     // train on set of images
-    public void train(int[][] imgs, String untrain) {
-        for (int i=0; i<imgs.length; i++) {
-            train(imgs[i], untrain);
-        }
-    }
-
     public void train(int[][] imgs) {
-        train(imgs, "no");
+        for (int i=0; i<imgs.length; i++) {
+            train(imgs[i]);
+        }
     }
 
     public int[][] getData() {
