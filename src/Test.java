@@ -88,4 +88,69 @@ public class Test {
 
         System.out.println("\nDone!");
     }
+
+
+// OLD TESTS
+
+
+    // Test if the sorting is correct - should be DESC
+    public static void testTrainingSet() {
+        int maxsize = 2;
+        TrainingSet ts = new TrainingSet(maxsize);
+        double[] sims;
+        int[] vals = {0,0,0};
+        ts.tryAdd(vals, 2.0);
+        ts.tryAdd(vals, 1.0);
+        ts.tryAdd(vals, 3.0);
+
+        sims = ts.getCurrentSims();
+        System.out.println("Current: ");
+        for (int i=0; i<sims.length; i++) {
+            System.out.println(sims[i]);
+        }
+
+        sims = ts.getFullSims();
+        System.out.println("Full size: " + sims.length);
+
+        ts.flushCurrent();
+
+        ts.tryAdd(vals, 4.0);
+        ts.tryAdd(vals, 6.0);
+        ts.tryAdd(vals, 5.0);
+
+        sims = ts.getCurrentSims();
+        System.out.println("Current: ");
+        for (int i=0; i<sims.length; i++) {
+            System.out.println(sims[i]);
+        }
+
+        sims = ts.getFullSims();
+        System.out.println("Full: ");
+        for (int i=0; i<sims.length; i++) {
+            System.out.println(sims[i]);
+        }
+
+        ts.flushCurrent();
+
+        sims = ts.getFullSims();
+        System.out.println("Full: ");
+        for (int i=0; i<sims.length; i++) {
+            System.out.println(sims[i]);
+        }
+
+        int[][] vecs = ts.returnVecsAndReset();
+        System.out.println("Final vecs: ");
+        for (int i=0; i<vecs.length; i++) {
+            for (int j=0; j<vecs[0].length; j++) {
+                System.out.print(vecs[i][j]);
+            }
+            System.out.println();
+        }
+
+        sims = ts.getCurrentSims();
+        System.out.println("Current size: " + sims.length);
+
+        sims = ts.getFullSims();
+        System.out.println("Full size: " + sims.length);
+    }
 }

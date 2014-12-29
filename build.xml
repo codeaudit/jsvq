@@ -5,8 +5,7 @@
     <property name="classes.dir" value="${build.dir}/classes"/>
     <property name="jar.dir"     value="${build.dir}/jar"/>
     <property name="main-class"  value="SVQ.SVQ"/>
-    <!-- <property name="test-class"  value="Test.SVQ.Test"/> -->
-    <property name="test-class"  value="SVQ.TrainingSet"/>
+    <property name="test-class"  value="Test.SVQ.Test"/>
 
     <target name="clean">
         <delete dir="${build.dir}"/>
