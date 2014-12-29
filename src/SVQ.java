@@ -50,15 +50,14 @@ public class SVQ {
         return ret;
     }
 
-    public double[] maxWithIndex(double[] vec) {
-        double[] ret = { vec[0], 0 };
+    public int maxIdx(double[] vec) {
+        int maxidx = 0;
         for (int i=1; i<vec.length; i++) {
-            if (vec[i]>ret[0]) {
-                ret[0] = vec[i];
-                ret[1] = i;
+            if (vec[i]>vec[maxidx]) {
+                maxidx = i;
             }
         }
-        return ret;
+        return maxidx;
     }
 
     public int[] minMaxIndices(double[] vec) {
@@ -74,10 +73,9 @@ public class SVQ {
         int[] ret = new int[ncentr];
         Arrays.fill(ret, (int)0);
 
-        double[] mwi = maxWithIndex(similarities(vec));
-        // System.out.println("Max: "+mwi[0]+" - idx: "+mwi[1]);
-        // here mwi[0] holds the max, if you need it
-        ret[(int)mwi[1]] = 1;
+        double[] sims = similarities(vec);
+        int idx = maxIdx(sims);
+        ret[idx] = 1;
         return ret;
     }
 
