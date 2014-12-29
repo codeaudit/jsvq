@@ -4,7 +4,9 @@
     <property name="build.dir"   value="build"/>
     <property name="classes.dir" value="${build.dir}/classes"/>
     <property name="jar.dir"     value="${build.dir}/jar"/>
-    <property name="main-class"  value="Test.SVQ.Test"/>
+    <property name="main-class"  value="SVQ.SVQ"/>
+    <!-- <property name="test-class"  value="Test.SVQ.Test"/> -->
+    <property name="test-class"  value="SVQ.TrainingSet"/>
 
     <target name="clean">
         <delete dir="${build.dir}"/>
@@ -17,7 +19,7 @@
                destdir="${classes.dir}"/>
     </target>
 
-    <target name="jar" depends="clean,compile">
+    <target name="jar" depends="compile">
         <mkdir dir="${jar.dir}"/>
         <exec executable="git" outputproperty="git.tag">
               <arg value="describe"/>
@@ -46,7 +48,7 @@
 
      <!-- wanna make sure I won't forget fresh jars -->
     <target name="run" depends="jar">
-        <java classname="${main-class}">
+        <java classname="${test-class}">
             <classpath>
                 <pathelement location="${classes.dir}"/>
              </classpath>

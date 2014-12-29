@@ -8,6 +8,15 @@ public class SVQ {
 
     Centroid[] centroids;
     int ncentr, imgsize;
+    TrainingSet tset; // if not null, enables autotrain
+
+    public SVQ(int ncentr, int imgsize, String compMethod, String similMethod,
+               int tsetsize) {
+        this(ncentr, imgsize, compMethod, similMethod);
+        if (tsetsize>0) {
+            tset = new TrainingSet(tsetsize);
+        }
+    }
 
     public SVQ(int ncentr, int imgsize, String compMethod, String similMethod) {
         this.ncentr = ncentr;

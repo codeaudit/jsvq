@@ -19,7 +19,7 @@ public class Test {
         // number of centroids
         int NCENTR  = 8;
         // size of training set
-        int NTRAIN  = -1;          // -1 -> all
+        int NTRAIN  = -1; // -1 -> all
         // size of validation set
         int NVALID  = 4;
         // number of trainings over the training set
@@ -32,6 +32,8 @@ public class Test {
         // { "simpleDotProduct", "shiftedDotProduct", "squareError",
         //   "simpleHistogram", "pyramidMatching", "spacialPyramidMatching" }
         String SIMILMETHOD = "spacialPyramidMatching";
+        // size of autotraining set
+        int TRAINSETSIZE = -1; // -1 -> disable
 
         // load images
         BMPLoader bmp = new BMPLoader(indir, outdir);
@@ -41,7 +43,8 @@ public class Test {
             images.length + "x" + bmp.height + "x" + bmp.width);
 
         // train
-        SVQ svq = new SVQ(NCENTR, images[0].length, COMPMETHOD, SIMILMETHOD);
+        SVQ svq = new SVQ(NCENTR, images[0].length,
+                          COMPMETHOD, SIMILMETHOD, TRAINSETSIZE);
         for (int i=0; i<NTRAINS; i++) {
             System.out.println("Training "+(i+1));
             svq.train(images, UNTRAIN);
