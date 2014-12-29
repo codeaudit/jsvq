@@ -1,6 +1,14 @@
 // Automatically maintained training set for SVQ autotraining
 package SVQ;
 
+
+// INTERFACE:
+// - `tryAdd(vec)`: Each SVQ coding should call this to candidate the vec.
+// - `flush()`: Save chosen vecs, call when an individual has finished.
+// - `returnVecsAndReset()`: Retrieve all the vecs and reset the state,
+//   call at end of generation.
+
+
 import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
@@ -30,20 +38,26 @@ class SortableVec implements Comparable {
             return 0;
         }
     }
-
-    // @Override
-    // public String toString(){
-    //     return this.id;
-    // }
 }
 
+
+// Usage: an individual codes images with SVQ, which holds a unique TrainingSet.
+// Each time an image gets coded, it also tries to add it to the TS. Only the
+// `maxsize` images with poorest reconstruction (lowest best-similarity) are
+// kept in a `current` list. When the individual has finished its run, the
+// `current` images are added to the `full` training set. This keeps going for a
+// generation, until `full` contains `maxsize*popsize` images. At this point,
+// SVQ retrieves the images with `retrieveAndReset()`, and trains on these
+// images. The TS is fully reseted and ready for the next generation.
 public class TrainingSet {
-    // Holds the images of the test set
+    // Holds the images currently considered for the test set
         // Higher similarity -> better reconstruction -> lower novelty.
-        // List is sorted on sim DESC - `list.get(0).sim == maxSim` holds.
-        // Elements are added to tail, then list is re-sorted.
-    List<SortableVec> list;
-    // Maximum size of test set
+        // List is sorted on sim DESC - `current.get(0).sim == maxSim` holds.
+        // Elements are added to tail, then current is re-sorted.
+    List<SortableVec> current;
+    // Holds the images currently accepted for next training
+    List<SortableVec> full;
+    // Maximum numbers of images to add to full at next import
     int maxsize;
     // Maximum similarity to enter the test set:
     // we want the _least_ similar vecs to be kept
@@ -54,33 +68,46 @@ public class TrainingSet {
         reset();
     }
 
-    public void reset() {
-        this.list = new ArrayList<SortableVec>(maxsize);
+    public void resetCurrent() {
+        this.current = new ArrayList<SortableVec>(maxsize);
         this.maxSim = Double.MAX_VALUE;
     }
 
+    public void resetFull(){
+        this.full = new ArrayList<SortableVec>();
+    }
+
+    public void reset() {
+        resetCurrent();
+        resetFull();
+    }
+
+    public SortableVec makeSV(int[] vec, double sim) {
+        return new SortableVec(vec, sim);
+    }
 
     public void add(int[] vec, double sim) {
         add(makeSV(vec,sim));
     }
 
     public void add(SortableVec svec) {
-        // add to end of list
-        list.add(svec);
-        Collections.sort(list);
+        // add to end of currentlist
+        current.add(svec);
+        Collections.sort(current);
     }
 
     public void trim() {
-        while (list.size()>maxsize) {
+        while (current.size()>maxsize) {
             // remove from front
-            list.remove(0);
+            current.remove(0);
             // new "first" has highest similarity
-            maxSim = list.get(0).sim;
+            maxSim = current.get(0).sim;
         }
     }
 
-    public SortableVec makeSV(int[] vec, double sim) {
-        return new SortableVec(vec, sim);
+    public void flush() {
+        full.addAll(current);
+        resetCurrent();
     }
 
     public void tryAdd(SortableVec svec) {
@@ -97,40 +124,104 @@ public class TrainingSet {
         }
     }
 
-    public int[][] getVecs() {
-        @SuppressWarnings("unchecked")
-        int[][] ret = new int[list.size()][];
-        for (int i=0; i<list.size(); i++) {
-            ret[i] = list.get(i).vec;
+    public int[][] getCurrentVecs() {
+        return getVecs(current);
+    }
+
+    public int[][] getFullVecs() {
+        return getVecs(full);
+    }
+
+    public int[][] getVecs(List<SortableVec> lst) {
+        int[][] ret = new int[lst.size()][];
+        for (int i=0; i<lst.size(); i++) {
+            ret[i] = lst.get(i).vec;
         }
         return ret;
     }
 
+    public double[] getCurrentSims() {
+        return getSims(current);
+    }
+
+    public double[] getFullSims() {
+        return getSims(full);
+    }
+
     // mostly for debugging purpose
-    public double[] getSims() {
-        double[] ret = new double[list.size()];
-        for (int i=0; i<list.size(); i++) {
-            ret[i] = list.get(i).sim;
+    public double[] getSims(List<SortableVec> lst) {
+        double[] ret = new double[lst.size()];
+        for (int i=0; i<lst.size(); i++) {
+            ret[i] = lst.get(i).sim;
         }
         return ret;
     }
 
     public int[][] returnVecsAndReset() {
-        int[][] ret = getVecs();
+        int[][] ret = getFullVecs();
         reset();
         return ret;
     }
 
+
+    // Test if the sorting is correct - should be DESC
     public static void main(String[] args) {
-        // Test if the sorting is correct - should be DESC
-        TrainingSet ts = new TrainingSet(3);
+        int maxsize = 2;
+        TrainingSet ts = new TrainingSet(maxsize);
+        double[] sims;
         int[] vals = {0,0,0};
-        ts.add(vals, 2.0);
-        ts.add(vals, 1.0);
-        ts.add(vals, 3.0);
-        double[] sims = ts.getSims();
+        ts.tryAdd(vals, 2.0);
+        ts.tryAdd(vals, 1.0);
+        ts.tryAdd(vals, 3.0);
+
+        sims = ts.getCurrentSims();
+        System.out.println("Current: ");
         for (int i=0; i<sims.length; i++) {
             System.out.println(sims[i]);
         }
+
+        sims = ts.getFullSims();
+        System.out.println("Full size: " + sims.length);
+
+        ts.flush();
+
+        ts.tryAdd(vals, 4.0);
+        ts.tryAdd(vals, 6.0);
+        ts.tryAdd(vals, 5.0);
+
+        sims = ts.getCurrentSims();
+        System.out.println("Current: ");
+        for (int i=0; i<sims.length; i++) {
+            System.out.println(sims[i]);
+        }
+
+        sims = ts.getFullSims();
+        System.out.println("Full: ");
+        for (int i=0; i<sims.length; i++) {
+            System.out.println(sims[i]);
+        }
+
+        ts.flush();
+
+        sims = ts.getFullSims();
+        System.out.println("Full: ");
+        for (int i=0; i<sims.length; i++) {
+            System.out.println(sims[i]);
+        }
+
+        int[][] vecs = ts.returnVecsAndReset();
+        System.out.println("Final vecs: ");
+        for (int i=0; i<vecs.length; i++) {
+            for (int j=0; j<vecs[0].length; j++) {
+                System.out.print(vecs[i][j]);
+            }
+            System.out.println();
+        }
+
+        sims = ts.getCurrentSims();
+        System.out.println("Current size: " + sims.length);
+
+        sims = ts.getFullSims();
+        System.out.println("Full size: " + sims.length);
     }
 }
