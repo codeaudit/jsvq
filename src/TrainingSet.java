@@ -43,10 +43,10 @@ class SortableVec implements Comparable {
 
 // Usage: an individual codes images with SVQ, which holds a unique TrainingSet.
 // Each time an image gets coded, it also tries to add it to the TS. Only the
-// `maxsize` images with poorest reconstruction (lowest best-similarity) are
+// `nImgsPerImport` images with poorest reconstruction (lowest best-similarity) are
 // kept in a `current` list. When the individual has finished its run, the
 // `current` images are added to the `full` training set. This keeps going for a
-// generation, until `full` contains `maxsize*popsize` images. At this point,
+// generation, until `full` contains `nImgsPerImport*popsize` images. At this point,
 // SVQ retrieves the images with `retrieveAndReset()`, and trains on these
 // images. The TS is fully reseted and ready for the next generation.
 public class TrainingSet {
@@ -57,19 +57,19 @@ public class TrainingSet {
     List<SortableVec> current;
     // Holds the images currently accepted for next training
     List<SortableVec> full;
-    // Maximum numbers of images to add to full at next import
-    int maxsize;
+    // Maximum numbers of images to add to `full` at each import
+    int nImgsPerImport;
     // Maximum similarity to enter the test set:
     // we want the _least_ similar vecs to be kept
     double maxSim;
 
-    public TrainingSet(int maxsize) {
-        this.maxsize = maxsize;
+    public TrainingSet(int nImgsPerImport) {
+        this.nImgsPerImport = nImgsPerImport;
         reset();
     }
 
     public void resetCurrent() {
-        this.current = new ArrayList<SortableVec>(maxsize);
+        this.current = new ArrayList<SortableVec>(nImgsPerImport);
         this.maxSim = Double.MAX_VALUE;
     }
 
@@ -97,7 +97,7 @@ public class TrainingSet {
     }
 
     public void trim() {
-        while (current.size()>maxsize) {
+        while (current.size()>nImgsPerImport) {
             // remove from front
             current.remove(0);
             // new "first" has highest similarity

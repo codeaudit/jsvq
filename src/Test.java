@@ -19,7 +19,7 @@ public class Test {
         // number of centroids
         int NCENTR  = 8;
         // size of training set
-        int NTRAIN  = -1; // -1 -> all
+        int NTRAIN  = 100; // -1 -> all
         // size of validation set
         int NVALID  = 4;
         // number of trainings over the training set
@@ -27,13 +27,15 @@ public class Test {
         // whether to activate negative training: { "no", "all", "least" }
         String UNTRAIN = "no";
         // comparison method to use inside centroids: { "dot", "hik" }
-        String COMPMETHOD = "hik";
+        String COMPMETHOD = "dot";
         // similarity method to use inside centroids:
         // { "simpleDotProduct", "shiftedDotProduct", "squareError",
         //   "simpleHistogram", "pyramidMatching", "spacialPyramidMatching" }
-        String SIMILMETHOD = "spacialPyramidMatching";
+        String SIMILMETHOD = "simpleDotProduct";
         // size of autotraining set
         int TRAINSETSIZE = 3; // -1 -> disable
+        // save BMP images at end of computation?
+        boolean saveimgs = false;
 
         // load images
         BMPLoader bmp = new BMPLoader(indir, outdir);
@@ -64,7 +66,6 @@ public class Test {
             }
             // flush and train on remaining
         }
-        bmp.saveAll(svq.getData(), "centr");
 
         int[][] selected = new int[NVALID][];
         int[][] codes    = new int[NVALID][];
@@ -82,9 +83,12 @@ public class Test {
             // reconstruction error
             errors[i] = svq.reconstructionError(selected[i], reconstr[i]);
         }
-        bmp.saveAll(selected, "image");
-        bmp.saveAll(reconstr, "reconstr");
-        bmp.saveAll(errors, "x_error");
+        if (saveimgs) {
+            bmp.saveAll(svq.getData(), "centr");
+            bmp.saveAll(selected, "image");
+            bmp.saveAll(reconstr, "reconstr");
+            bmp.saveAll(errors, "x_error");
+        }
 
         // total errors
         int tot, avg, ttot=0;

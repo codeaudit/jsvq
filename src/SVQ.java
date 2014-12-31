@@ -6,26 +6,26 @@ import java.util.Arrays;
 
 public class SVQ {
 
-    Centroid[] centroids;
-    int ncentr, imgsize;
-    TrainingSet tset; // if not null, enables autotrain
+    public Centroid[] centroids;
+    public int ncentr, imgsize;
+    public TrainingSet tset; // if not null, enables autotrain
 
     private enum TrainOpts { NO, ALL, LEAST }
-    TrainOpts trainOpt;
+    TrainOpts untrain;
 
     public SVQ(int ncentr, int imgsize, String compMethod, String similMethod,
-               String trainOpt, int tsetsize) {
-        this(ncentr, imgsize, compMethod, similMethod, trainOpt);
-        if (tsetsize>0) {
-            tset = new TrainingSet(tsetsize);
+               String untrain, int tsetperflush) {
+        this(ncentr, imgsize, compMethod, similMethod, untrain);
+        if (tsetperflush>0) {
+            tset = new TrainingSet(tsetperflush);
         }
     }
 
     public SVQ(int ncentr, int imgsize, String compMethod, String similMethod,
-               String trainOpt) {
+               String untrain) {
         this.ncentr = ncentr;
         this.imgsize = imgsize;
-        this.trainOpt = TrainOpts.valueOf(trainOpt.toUpperCase());
+        this.untrain = TrainOpts.valueOf(untrain.toUpperCase());
         centroids = new Centroid[ncentr];
         for (int i=0; i<ncentr; i++) {
             centroids[i] = new Centroid(imgsize, compMethod, similMethod);
@@ -157,7 +157,7 @@ public class SVQ {
         int idxLeastSimilar = minmax[0];
         int idxMostSimilar  = minmax[1];
 
-        switch (trainOpt) {
+        switch (untrain) {
             case NO:
                 centroids[idxMostSimilar].train(img);
                 break;
