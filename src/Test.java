@@ -7,62 +7,10 @@ import SVQ.*;
 
 public class Test {
     public static void main(String[] args) {
+        // Get JAFFE database from http://www.kasrl.org/jaffe_info.html
+        // Extract pics in folder named "jaffe"
+        // Convert to bmp with `ls *.tiff | while read f; do convert "$f" "${f%.*}.bmp"; done`
 
-        // USE CASE: an individual codes images with SVQ. SVQ holds a unique
-        // TrainingSet, which in turn differenciates the images coming from
-        // different individuals, even in parallel. Each time an image gets
-        // coded, the SVQ also tries to add it to the TS. Only the
-        // `SVQ.nImgsPerImport` images with poorest reconstruction (lowest
-        // best-similarity against the set of centroids) per each individual are
-        // kept. When a population evaluation finishes, a call to `flush()`
-        // returns all the images added so far by all individuals (i.e. up to
-        // `nImgsPerImport*popsize` images per generation), and resets the state
-        // of the training set for the next generation. At this point, the SVQ
-        // will be trained on these images, and is ready for the next
-        // generation.
-
-        TrainingSet tset = new TrainingSet(1);
-
-        String[] ids = {"ciccio", "pluto", "pippo"};
-        int[] data;
-        int sim;
-
-        sim = 1;
-        data = new int[1];
-        data[0] = (int) sim;
-        tset.tryAdd(ids[sim], data, sim);
-        tset.tryAdd(ids[sim], data, sim);
-
-        sim = 2;
-        data = new int[1];
-        data[0] = (int) sim;
-        tset.tryAdd(ids[sim], data, sim);
-        tset.tryAdd(ids[sim], data, sim);
-
-        sim = 0;
-        data = new int[1];
-        data[0] = (int) sim;
-        tset.tryAdd(ids[sim], data, sim);
-        tset.tryAdd(ids[sim], data, sim);
-
-        int[][] res = tset.flush();
-        for (int[] img : res) {
-            for (int i : img) {
-                System.out.print(i+" ");
-            }
-            System.out.println();
-        }
-
-    }
-
-
-
-// OLD TESTS
-
-    // Get JAFFE database from http://www.kasrl.org/jaffe_info.html
-    // Extract pics in folder named "jaffe"
-    // Convert to bmp with `ls *.tiff | while read f; do convert "$f" "${f%.*}.bmp"; done`
-    public static void testReconstruction() {
         // directory where the input images are located
         // String indir = System.getProperty("user.home")+"/torcs_imgs/";
         String indir = "torcs";
@@ -87,7 +35,7 @@ public class Test {
         // size of autotraining set
         int TRAINSETSIZE = 3; // -1 -> disable
         // save BMP images at end of computation?
-        boolean saveimgs = false;
+        boolean saveimgs = true;
 
         // load images
         BMPLoader bmp = new BMPLoader(indir, outdir);
@@ -160,5 +108,43 @@ public class Test {
         System.out.println();
 
         System.out.println("\nDone!");
+    }
+
+
+// OLD TESTS
+
+
+    public static void testTrainingSet() {
+        TrainingSet tset = new TrainingSet(1);
+
+        String[] ids = {"ciccio", "pluto", "pippo"};
+        int[] data;
+        int sim;
+
+        sim = 1;
+        data = new int[1];
+        data[0] = (int) sim;
+        tset.tryAdd(ids[sim], data, sim);
+        tset.tryAdd(ids[sim], data, sim);
+
+        sim = 2;
+        data = new int[1];
+        data[0] = (int) sim;
+        tset.tryAdd(ids[sim], data, sim);
+        tset.tryAdd(ids[sim], data, sim);
+
+        sim = 0;
+        data = new int[1];
+        data[0] = (int) sim;
+        tset.tryAdd(ids[sim], data, sim);
+        tset.tryAdd(ids[sim], data, sim);
+
+        int[][] res = tset.flush();
+        for (int[] img : res) {
+            for (int i : img) {
+                System.out.print(i+" ");
+            }
+            System.out.println();
+        }
     }
 }
