@@ -90,13 +90,15 @@ public class TrainingSet {
         add(makeSV(vec,sim));
     }
 
-    public void add(SortableVec svec) {
+    // synchronized to avoid messing with links when add() to List from two threads
+    public synchronized void add(SortableVec svec) {
         // add to end of currentlist
         current.add(svec);
         Collections.sort(current);
     }
 
-    public void trim() {
+    // synchronized to avoid double remove() after same size() from two threads
+    public synchronized void trim() {
         while (current.size()>nImgsPerImport) {
             // remove from front
             current.remove(0);
