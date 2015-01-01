@@ -6,40 +6,36 @@ import java.util.Arrays;
 
 public class SVQ {
 
-    Centroid[] centroids;
-    int ncentr, imgsize;
-    TrainingSet tset; // if not null, enables autotrain
+    public Centroid[] centroids;
+    public int ncentr, imgsize;
+    public TrainingSet tset; // if not null, enables autotrain
 
     private enum TrainOpts { NO, ALL, LEAST }
-    TrainOpts trainOpt;
+    TrainOpts untrain;
 
     public SVQ(int ncentr, int imgsize, String compMethod, String similMethod,
-               String trainOpt, int tsetsize) {
-        this(ncentr, imgsize, compMethod, similMethod, trainOpt);
-        if (tsetsize>0) {
-            tset = new TrainingSet(tsetsize);
+               String untrain, int tsetperflush) {
+        this(ncentr, imgsize, compMethod, similMethod, untrain);
+        if (tsetperflush>0) {
+            tset = new TrainingSet(tsetperflush);
         }
     }
 
     public SVQ(int ncentr, int imgsize, String compMethod, String similMethod,
-               String trainOpt) {
+               String untrain) {
         this.ncentr = ncentr;
         this.imgsize = imgsize;
-        this.trainOpt = TrainOpts.valueOf(trainOpt.toUpperCase());
+        this.untrain = TrainOpts.valueOf(untrain.toUpperCase());
         centroids = new Centroid[ncentr];
         for (int i=0; i<ncentr; i++) {
             centroids[i] = new Centroid(imgsize, compMethod, similMethod);
         }
     }
 
-    // Training set interface: code(vec), flushTrainingSet(), autoTrain()
-
-    public void flushTrainingSet() {
-        tset.flushCurrent();
-    }
+    // Training set interface: code(vec), autoTrain()
 
     public void autoTrain() {
-        train(tset.getFullVecs());
+        train(tset.flush());
     }
 
     public void checkLengths(int[] a, int[] b){
@@ -84,15 +80,19 @@ public class SVQ {
         return ret;
     }
 
-    public int[][] code(int[][] vecs) {
+    // I could have easily written a method (ok I admit I did)
+    // public int[][] code(String id, int[][] vecs) { return code("0", vecs); }
+    // but the current usage does not require it, and it could hide bugs in
+    // my migration towards the new id-based lists.
+    public int[][] code(String id, int[][] vecs) {
         int[][] ret = new int[vecs.length][];
         for (int i=0; i<vecs.length; i++) {
-            ret[i] = code(vecs[i]);
+            ret[i] = code(id, vecs[i]);
         }
         return ret;
     }
 
-    public int[] code(int[] vec) {
+    public int[] code(String id, int[] vec) {
         int[] ret = new int[ncentr];
         Arrays.fill(ret, (int)0);
 
@@ -102,7 +102,7 @@ public class SVQ {
         // if we're using autotrain
         if (tset != null) {
             // try to add the image to the training set
-            tset.tryAdd(vec,sims[idx]);
+            tset.tryAdd(id, vec,sims[idx]);
             // TODO: I could also cache the similarities
         }
 
@@ -157,7 +157,7 @@ public class SVQ {
         int idxLeastSimilar = minmax[0];
         int idxMostSimilar  = minmax[1];
 
-        switch (trainOpt) {
+        switch (untrain) {
             case NO:
                 centroids[idxMostSimilar].train(img);
                 break;
